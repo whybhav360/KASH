@@ -1,3 +1,5 @@
+(Note:(The readme was created using Gemini and a very tired developer))
+
 #  BudgetBuddy Lite
 
 Hey there! Ever looked at your bank account at the end of the month and wondered where all your money went? I know I have. That's why I created **BudgetBuddy Lite**. It's not just another complicated finance app. It's a friendly tool that can help you relax a little when it comes to your money.
