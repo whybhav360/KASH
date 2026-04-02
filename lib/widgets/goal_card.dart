@@ -94,14 +94,14 @@ class GoalCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Saved', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                  Text('\$${currentSavings.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('₹${currentSavings.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text('Target', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                  Text('\$${goal.targetAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text('₹${goal.targetAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
             ],

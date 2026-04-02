@@ -13,14 +13,14 @@ class CategoryChart extends StatelessWidget {
     }
 
     final List<Color> colors = [
-      Colors.blue,
-      Colors.red,
-      Colors.green,
-      Colors.yellow,
-      Colors.purple,
-      Colors.orange,
-      Colors.teal,
-      Colors.pink,
+      const Color(0xFF6366F1),
+      const Color(0xFFEF4444),
+      const Color(0xFF10B981),
+      const Color(0xFFF59E0B),
+      const Color(0xFF8B5CF6),
+      const Color(0xFFEC4899),
+      const Color(0xFF06B6D4),
+      const Color(0xFFF97316),
     ];
 
     int colorIndex = 0;
@@ -35,7 +35,7 @@ class CategoryChart extends StatelessWidget {
           return PieChartSectionData(
             color: color,
             value: entry.value,
-            title: '${entry.key}\n\$${entry.value.toStringAsFixed(0)}',
+            title: '${entry.key}\n₹${entry.value.toStringAsFixed(0)}',
             radius: 50,
             titleStyle: const TextStyle(
               fontSize: 12,

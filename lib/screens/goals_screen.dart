@@ -14,16 +14,16 @@ class GoalsScreen extends StatelessWidget {
     final goals = financeProvider.goals;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Savings Goals')),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('Savings Goals'),
+        backgroundColor: const Color(0xFFF8FAFC),
+        surfaceTintColor: Colors.transparent,
+      ),
       body: RefreshIndicator(
         onRefresh: () => financeProvider.refreshData(),
         child: goals.isEmpty
-            ? ListView(
-                children: const [
-                  SizedBox(height: 100),
-                  Center(child: Text('No goals set yet.')),
-                ],
-              )
+            ? _buildEmptyState(context)
             : ListView.builder(
                 padding: const EdgeInsets.all(20),
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -42,7 +42,39 @@ class GoalsScreen extends StatelessWidget {
         onPressed: () => _showAddGoalDialog(context, financeProvider),
         icon: const Icon(Icons.add_rounded),
         label: const Text('New Goal'),
+        backgroundColor: const Color(0xFF4F46E5),
+        foregroundColor: Colors.white,
       ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context) {
+    return ListView(
+      children: [
+        SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+        Center(
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 20),
+                  ],
+                ),
+                child: Icon(Icons.track_changes_rounded, size: 64, color: Colors.grey.shade200),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'No goals set yet',
+                style: TextStyle(color: Colors.grey.shade500, fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -54,7 +86,7 @@ class GoalsScreen extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add New Goal'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -63,7 +95,7 @@ class GoalsScreen extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'Goal Title',
                 hintText: 'e.g., New Laptop',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               ),
             ),
             const SizedBox(height: 16),
@@ -71,8 +103,8 @@ class GoalsScreen extends StatelessWidget {
               controller: amountController,
               decoration: InputDecoration(
                 labelText: 'Target Amount',
-                prefixText: '\$ ',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                prefixText: '₹ ',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -80,22 +112,26 @@ class GoalsScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              if (titleController.text.isNotEmpty && amountController.text.isNotEmpty) {
-                provider.addGoal(Goal(
-                  id: const Uuid().v4(),
-                  title: titleController.text,
-                  targetAmount: double.parse(amountController.text),
-                ));
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
-              foregroundColor: Colors.white,
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                if (titleController.text.isNotEmpty && amountController.text.isNotEmpty) {
+                  provider.addGoal(Goal(
+                    id: const Uuid().v4(),
+                    title: titleController.text,
+                    targetAmount: double.parse(amountController.text),
+                  ));
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4F46E5),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Add Goal'),
             ),
-            child: const Text('Add'),
           ),
         ],
       ),

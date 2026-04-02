@@ -84,7 +84,7 @@ class TransactionTile extends StatelessWidget {
           ),
         ),
         trailing: Text(
-          '${isExpense ? "-" : "+"}\$${transaction.amount.toStringAsFixed(0)}',
+          '${isExpense ? "-" : "+"}\u20B9${transaction.amount.toStringAsFixed(0)}',
           style: TextStyle(
             color: isExpense ? const Color(0xFFD32F2F) : const Color(0xFF388E3C),
             fontWeight: FontWeight.bold,

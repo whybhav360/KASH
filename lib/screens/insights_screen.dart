@@ -21,6 +21,29 @@ class InsightsScreen extends StatelessWidget {
       }
     });
 
+    final currentMonthExp = financeProvider.currentMonthExpenses;
+    final lastMonthExp = financeProvider.lastMonthExpenses;
+    
+    String trendStatus = 'On Track';
+    String trendSubtitle = 'No data from last month';
+    Color trendColor = const Color(0xFF10B981);
+    IconData trendIcon = Icons.trending_up_rounded;
+
+    if (lastMonthExp > 0) {
+      final diff = ((currentMonthExp - lastMonthExp) / lastMonthExp) * 100;
+      if (diff > 0) {
+        trendStatus = 'Spending Up';
+        trendSubtitle = 'You spent ${diff.toStringAsFixed(1)}% more than last month';
+        trendColor = const Color(0xFFEF4444);
+        trendIcon = Icons.trending_up_rounded;
+      } else {
+        trendStatus = 'On Track';
+        trendSubtitle = 'You spent ${diff.abs().toStringAsFixed(1)}% less than last month';
+        trendColor = const Color(0xFF10B981);
+        trendIcon = Icons.trending_down_rounded;
+      }
+    }
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
@@ -65,17 +88,17 @@ class InsightsScreen extends StatelessWidget {
               _buildInsightCard(
                 title: 'Highest Spending',
                 value: highestCategory,
-                subtitle: '\$${highestAmount.toStringAsFixed(0)}',
+                subtitle: '₹${highestAmount.toStringAsFixed(0)}',
                 icon: Icons.pie_chart_rounded,
                 color: const Color(0xFFF59E0B),
               ),
               const SizedBox(height: 16),
               _buildInsightCard(
                 title: 'Monthly Trend',
-                value: 'On Track',
-                subtitle: 'You spent 12% less than last month',
-                icon: Icons.trending_down_rounded,
-                color: const Color(0xFF10B981),
+                value: trendStatus,
+                subtitle: trendSubtitle,
+                icon: trendIcon,
+                color: trendColor,
               ),
               const SizedBox(height: 100),
             ],

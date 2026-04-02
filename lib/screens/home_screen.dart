@@ -140,7 +140,7 @@ class HomeScreen extends StatelessWidget {
           Text('Total Balance', style: TextStyle(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           Text(
-            '\$ ${provider.totalBalance.toStringAsFixed(2)}',
+            '₹${provider.totalBalance.toStringAsFixed(2)}',
             style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
           ),
           const SizedBox(height: 24),
@@ -162,7 +162,7 @@ class HomeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Income', style: TextStyle(color: Color(0xFF065F46), fontSize: 11)),
-                          Text('\$${provider.totalIncome.toStringAsFixed(0)}', 
+                          Text('₹${provider.totalIncome.toStringAsFixed(0)}', 
                               style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF065F46))),
                         ],
                       ),
@@ -187,7 +187,7 @@ class HomeScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Expenses', style: TextStyle(color: Color(0xFF991B1B), fontSize: 11)),
-                          Text('\$${provider.totalExpenses.toStringAsFixed(0)}', 
+                          Text('₹${provider.totalExpenses.toStringAsFixed(0)}', 
                               style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF991B1B))),
                         ],
                       ),
@@ -242,11 +242,11 @@ class HomeScreen extends StatelessWidget {
           Text('Savings Goal', style: TextStyle(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(height: 4),
           Text(
-            '\$${currentBalance.toStringAsFixed(0)} saved',
+            '₹${currentBalance.toStringAsFixed(0)} saved',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
           ),
           const SizedBox(height: 4),
-          Text('Goal: \$${goal.targetAmount.toStringAsFixed(0)}', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+          Text('Goal: ₹${goal.targetAmount.toStringAsFixed(0)}', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
         ],
       ),
     );

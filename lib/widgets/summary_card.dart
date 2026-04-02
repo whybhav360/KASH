@@ -54,7 +54,7 @@ class SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '\$${amount.toStringAsFixed(2)}',
+            '₹${amount.toStringAsFixed(2)}',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,

@@ -119,7 +119,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 decoration: InputDecoration(
                   labelText: 'Amount',
                   labelStyle: const TextStyle(fontSize: 16),
-                  prefixIcon: const Icon(Icons.attach_money_rounded, size: 32),
+                  prefixIcon: const Icon(Icons.currency_rupee_rounded, size: 32),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 ),

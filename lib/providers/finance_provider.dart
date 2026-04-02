@@ -76,4 +76,20 @@ class FinanceProvider with ChangeNotifier {
     }
     return totals;
   }
+
+  // Insights Data
+  double get currentMonthExpenses {
+    final now = DateTime.now();
+    return _transactions
+        .where((t) => t.type == TransactionType.expense && t.date.month == now.month && t.date.year == now.year)
+        .fold(0, (sum, t) => sum + t.amount);
+  }
+
+  double get lastMonthExpenses {
+    final now = DateTime.now();
+    final lastMonth = DateTime(now.year, now.month - 1);
+    return _transactions
+        .where((t) => t.type == TransactionType.expense && t.date.month == lastMonth.month && t.date.year == lastMonth.year)
+        .fold(0, (sum, t) => sum + t.amount);
+  }
 }
