@@ -27,7 +27,7 @@ I've kept it modern and fast so the app never gets in your way:
 Want to give it a spin? It's easy:
 1. **Get the code**
    ```bash
-   git clone https://github.com/yourusername/budgetbuddy_lite.git
+   git clone https://github.com/whybhav360/budgetbuddy_lite.git
    ```
 
 2. **Get the bits and pieces**
