@@ -61,6 +61,9 @@ Found a bug or have a feature request? We'd love to hear from you! Feel free to 
 
 ---
 Made By -> Vaibhav Madaan
+
 Linkedin: https://www.linkedin.com/in/vaibhav360/
+
 GitHub: https://github.com/whybhav360
+
 and a lot of boilerplating by Gemini
