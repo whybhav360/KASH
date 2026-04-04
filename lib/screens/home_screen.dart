@@ -71,7 +71,9 @@ class HomeScreen extends StatelessWidget {
                     goal: primaryGoal,
                     currentBalance: totalBalance,
                     progress: goalProgress,
-                  ),
+                  )
+                else
+                  const NoGoalCard(),
                 
                 const SizedBox(height: 32),
                 
@@ -306,6 +308,52 @@ class GoalProgressCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text('Goal: ₹${goal.targetAmount.toStringAsFixed(0)}', style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 12)),
+        ],
+      ),
+    );
+  }
+}
+
+class NoGoalCard extends StatelessWidget {
+  const NoGoalCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final navProvider = Provider.of<NavigationProvider>(context, listen: false);
+    
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 2),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.stars_rounded, size: 40, color: Color(0xFFF59E0B)),
+          const SizedBox(height: 12),
+          const Text(
+            'Track your savings',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Set a goal to stay motivated and see your progress.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () => navProvider.setIndex(3),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFEEF2FF),
+              foregroundColor: const Color(0xFF4F46E5),
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text('Set a Goal', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );
