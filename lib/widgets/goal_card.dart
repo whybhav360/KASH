@@ -4,12 +4,14 @@ import '../models/goal.dart';
 class GoalCard extends StatelessWidget {
   final Goal goal;
   final double currentSavings;
+  final VoidCallback onTap;
   final VoidCallback onDelete;
 
   const GoalCard({
     super.key,
     required this.goal,
     required this.currentSavings,
+    required this.onTap,
     required this.onDelete,
   });
 
@@ -18,7 +20,9 @@ class GoalCard extends StatelessWidget {
     double progress = (currentSavings / goal.targetAmount).clamp(0.0, 1.0);
     bool isCompleted = progress >= 1.0;
 
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -108,6 +112,6 @@ class GoalCard extends StatelessWidget {
           ),
         ],
       ),
-    );
+    ),);
   }
 }

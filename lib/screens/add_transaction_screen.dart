@@ -124,7 +124,13 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) => (value == null || double.tryParse(value) == null) ? 'Enter valid amount' : null,
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Enter amount';
+                  final amount = double.tryParse(value);
+                  if (amount == null) return 'Enter valid number';
+                  if (amount <= 0) return 'Amount must be positive';
+                  return null;
+                },
                 onSaved: (value) => _amount = double.parse(value!),
               ),
               const SizedBox(height: 24),

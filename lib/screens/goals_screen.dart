@@ -33,13 +33,14 @@ class GoalsScreen extends StatelessWidget {
                   return GoalCard(
                     goal: goal,
                     currentSavings: financeProvider.totalBalance,
+                    onTap: () => _showGoalDialog(context, financeProvider, goal: goal),
                     onDelete: () => financeProvider.deleteGoal(goal),
                   );
                 },
               ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddGoalDialog(context, financeProvider),
+        onPressed: () => _showGoalDialog(context, financeProvider),
         icon: const Icon(Icons.add_rounded),
         label: const Text('New Goal'),
         backgroundColor: const Color(0xFF4F46E5),
@@ -78,59 +79,85 @@ class GoalsScreen extends StatelessWidget {
     );
   }
 
-  void _showAddGoalDialog(BuildContext context, FinanceProvider provider) {
-    final titleController = TextEditingController();
-    final amountController = TextEditingController();
+  void _showGoalDialog(BuildContext context, FinanceProvider provider, {Goal? goal}) {
+    final titleController = TextEditingController(text: goal?.title);
+    final amountController = TextEditingController(
+      text: goal == null ? '' : goal.targetAmount.toString(),
+    );
+    final formKey = GlobalKey<FormState>();
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Add New Goal'),
+        title: Text(goal == null ? 'Add New Goal' : 'Edit Goal'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: titleController,
-              decoration: InputDecoration(
-                labelText: 'Goal Title',
-                hintText: 'e.g., New Laptop',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: titleController,
+                decoration: InputDecoration(
+                  labelText: 'Goal Title',
+                  hintText: 'e.g., New Laptop',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                validator: (value) =>
+                    (value == null || value.isEmpty) ? 'Enter title' : null,
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: amountController,
-              decoration: InputDecoration(
-                labelText: 'Target Amount',
-                prefixText: '₹ ',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: amountController,
+                decoration: InputDecoration(
+                  labelText: 'Target Amount',
+                  prefixText: '₹ ',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Enter amount';
+                  final amount = double.tryParse(value);
+                  if (amount == null) return 'Enter valid number';
+                  if (amount <= 0) return 'Amount must be positive';
+                  return null;
+                },
               ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           Padding(
             padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
             child: ElevatedButton(
               onPressed: () {
-                if (titleController.text.isNotEmpty && amountController.text.isNotEmpty) {
-                  provider.addGoal(Goal(
-                    id: const Uuid().v4(),
-                    title: titleController.text,
-                    targetAmount: double.parse(amountController.text),
-                  ));
+                if (formKey.currentState!.validate()) {
+                  final amount = double.parse(amountController.text);
+                  if (goal == null) {
+                    provider.addGoal(Goal(
+                      id: const Uuid().v4(),
+                      title: titleController.text,
+                      targetAmount: amount,
+                    ));
+                  } else {
+                    goal.title = titleController.text;
+                    goal.targetAmount = amount;
+                    goal.save();
+                    provider.refreshData();
+                  }
                   Navigator.pop(context);
                 }
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF4F46E5),
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape:
+                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              child: const Text('Add Goal'),
+              child: Text(goal == null ? 'Add Goal' : 'Update Goal'),
             ),
           ),
         ],

@@ -14,100 +14,90 @@ class HomeScreen extends StatelessWidget {
     final navProvider = Provider.of<NavigationProvider>(context, listen: false);
     final recentTransactions = financeProvider.transactions.take(3).toList();
     
-    // For demo purposes, we'll use the first goal if available
     final primaryGoal = financeProvider.goals.isNotEmpty ? financeProvider.goals.first : null;
     final totalBalance = financeProvider.totalBalance;
     final goalProgress = primaryGoal != null ? (totalBalance / primaryGoal.targetAmount).clamp(0.0, 1.0) : 0.0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: const Color(0xFFF8FAFC),
+        surfaceTintColor: Colors.transparent,
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('KASH', style: TextStyle(fontSize: 12, color: Colors.grey.shade500, letterSpacing: 1.2)),
+            const Text('Welcome, User', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Color(0xFF1E293B))),
+          ],
+        ),
+        actions: const [
+          Padding(
+            padding: EdgeInsets.only(right: 16.0, left: 8.0),
+            child: CircleAvatar(
+              radius: 18,
+              backgroundColor: Color(0xFFF1F5F9),
+              child: Icon(Icons.person_rounded, color: Color(0xFF6366F1), size: 20),
+            ),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: () => financeProvider.refreshData(),
-        child: CustomScrollView(
+        child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              floating: true,
-              expandedHeight: 80,
-              backgroundColor: const Color(0xFFF8FAFC),
-              surfaceTintColor: Colors.transparent,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('FINIO', style: TextStyle(fontSize: 12, color: Colors.grey.shade500, letterSpacing: 1.2)),
-                  const Text('Good Morning', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Color(0xFF1E293B))),
-                ],
-              ),
-              actions: [
-                Stack(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Column(
+              children: [
+                const SizedBox(height: 12),
+                // Total Balance Card
+                _buildBalanceCard(financeProvider),
+                const SizedBox(height: 24),
+                
+                // Savings Goal Card
+                if (primaryGoal != null)
+                  _buildGoalCard(primaryGoal, totalBalance, goalProgress),
+                
+                const SizedBox(height: 32),
+                
+                // Recent Transactions Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.notifications_none_rounded, color: Color(0xFF6366F1), size: 28),
-                      onPressed: () {},
+                    const Text(
+                      'Recent Transactions',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
                     ),
-                    Positioned(
-                      right: 12,
-                      top: 12,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(color: Color(0xFF6366F1), shape: BoxShape.circle),
-                        constraints: const BoxConstraints(minWidth: 8, minHeight: 8),
-                      ),
-                    )
+                    TextButton(
+                      onPressed: () => navProvider.setIndex(1),
+                      child: const Text('See all', style: TextStyle(color: Color(0xFF6366F1), fontWeight: FontWeight.w600)),
+                    ),
                   ],
                 ),
-                const Padding(
-                  padding: EdgeInsets.only(right: 16.0, left: 8.0),
-                  child: CircleAvatar(
-                    radius: 18,
-                    backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=a042581f4e29026704d'),
-                  ),
-                ),
+                const SizedBox(height: 8),
+                
+                // Transaction List
+                if (recentTransactions.isEmpty)
+                  _buildEmptyState()
+                else
+                  ...recentTransactions
+                      .map((tx) => TransactionTile(
+                            transaction: tx,
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddTransactionScreen(transaction: tx),
+                              ),
+                            ),
+                            onDelete: () => financeProvider.deleteTransaction(tx),
+                          ))
+                      .toList(),
+                
+                const SizedBox(height: 100), // Space for FAB
               ],
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                child: Column(
-                  children: [
-                    // Total Balance Card
-                    _buildBalanceCard(financeProvider),
-                    const SizedBox(height: 24),
-                    
-                    // Savings Goal Card
-                    if (primaryGoal != null)
-                      _buildGoalCard(primaryGoal, totalBalance, goalProgress),
-                    
-                    const SizedBox(height: 32),
-                    
-                    // Recent Transactions Header
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Recent Transactions',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
-                        ),
-                        TextButton(
-                          onPressed: () => navProvider.setIndex(1),
-                          child: const Text('See all', style: TextStyle(color: Color(0xFF6366F1), fontWeight: FontWeight.w600)),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    
-                    // Transaction List
-                    if (recentTransactions.isEmpty)
-                      _buildEmptyState()
-                    else
-                      ...recentTransactions.map((tx) => TransactionTile(transaction: tx)).toList(),
-                    
-                    const SizedBox(height: 100), // Space for FAB
-                  ],
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
