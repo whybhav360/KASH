@@ -13,14 +13,10 @@ class TransactionsScreen extends StatefulWidget {
 }
 
 class _TransactionsScreenState extends State<TransactionsScreen> {
-  TransactionType? _filterType;
-
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
-    final transactions = _filterType == null
-        ? financeProvider.transactions
-        : financeProvider.transactions.where((t) => t.type == _filterType).toList();
+    final transactions = financeProvider.filteredTransactions;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -39,13 +35,22 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
                 ],
               ),
-              child: PopupMenuButton<TransactionType?>(
+              child: PopupMenuButton<String>(
+                initialValue: financeProvider.filterType?.toString() ?? 'all',
                 icon: const Icon(Icons.tune_rounded, size: 22, color: Color(0xFF6366F1)),
-                onSelected: (value) => setState(() => _filterType = value),
+                onSelected: (value) {
+                  if (value == 'all') {
+                    financeProvider.setFilterType(null);
+                  } else if (value == TransactionType.income.toString()) {
+                    financeProvider.setFilterType(TransactionType.income);
+                  } else if (value == TransactionType.expense.toString()) {
+                    financeProvider.setFilterType(TransactionType.expense);
+                  }
+                },
                 itemBuilder: (context) => [
-                  const PopupMenuItem(value: null, child: Text('All Transactions')),
-                  const PopupMenuItem(value: TransactionType.income, child: Text('Income Only')),
-                  const PopupMenuItem(value: TransactionType.expense, child: Text('Expenses Only')),
+                  const PopupMenuItem(value: 'all', child: Text('All Transactions')),
+                  PopupMenuItem(value: TransactionType.income.toString(), child: const Text('Income Only')),
+                  PopupMenuItem(value: TransactionType.expense.toString(), child: const Text('Expenses Only')),
                 ],
               ),
             ),

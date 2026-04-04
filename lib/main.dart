@@ -43,7 +43,6 @@ class BudgetBuddyApp extends StatelessWidget {
           primary: const Color(0xFF4A6CF7),
           secondary: const Color(0xFF6366F1),
           surface: Colors.white,
-          background: const Color(0xFFF8FAFC),
         ),
         textTheme: const TextTheme(
           headlineMedium: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),

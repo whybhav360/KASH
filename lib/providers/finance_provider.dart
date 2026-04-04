@@ -9,8 +9,22 @@ class FinanceProvider with ChangeNotifier {
 
   List<Transaction> _transactions = [];
   List<Goal> _goals = [];
+  TransactionType? _filterType;
 
   List<Transaction> get transactions => _transactions;
+  List<Transaction> get allTransactions => _transactions;
+  
+  List<Transaction> get filteredTransactions {
+    if (_filterType == null) return _transactions;
+    return _transactions.where((t) => t.type == _filterType).toList();
+  }
+  
+  TransactionType? get filterType => _filterType;
+
+  void setFilterType(TransactionType? type) {
+    _filterType = type;
+    notifyListeners();
+  }
   List<Goal> get goals => _goals;
 
   Future<void> init() async {
