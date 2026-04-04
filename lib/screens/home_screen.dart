@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../widgets/transaction_tile.dart';
+import '../models/goal.dart';
 import 'add_transaction_screen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -34,7 +35,7 @@ class HomeScreen extends StatelessWidget {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('KASH', style: TextStyle(fontSize: 12, color: Colors.grey.shade500, letterSpacing: 1.2)),
+            const Text('KASH', style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8), letterSpacing: 1.2)),
             Text(_getGreeting(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Color(0xFF1E293B))),
           ],
         ),
@@ -58,17 +59,22 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 12),
-                // Total Balance Card
-                _buildBalanceCard(financeProvider),
+                BalanceCard(
+                  balance: totalBalance,
+                  income: financeProvider.totalIncome,
+                  expenses: financeProvider.totalExpenses,
+                ),
                 const SizedBox(height: 24),
                 
-                // Savings Goal Card
                 if (primaryGoal != null)
-                  _buildGoalCard(primaryGoal, totalBalance, goalProgress),
+                  GoalProgressCard(
+                    goal: primaryGoal,
+                    currentBalance: totalBalance,
+                    progress: goalProgress,
+                  ),
                 
                 const SizedBox(height: 32),
                 
-                // Recent Transactions Header
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -84,24 +90,22 @@ class HomeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 
-                // Transaction List
                 if (recentTransactions.isEmpty)
-                  _buildEmptyState()
+                  const EmptyTransactionsState()
                 else
-                  ...recentTransactions
-                      .map((tx) => TransactionTile(
-                            transaction: tx,
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddTransactionScreen(transaction: tx),
-                              ),
-                            ),
-                            onDelete: () => financeProvider.deleteTransaction(tx),
-                          ))
-                      .toList(),
+                  for (final tx in recentTransactions)
+                    TransactionTile(
+                      transaction: tx,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddTransactionScreen(transaction: tx),
+                        ),
+                      ),
+                      onDelete: () => financeProvider.deleteTransaction(tx),
+                    ),
                 
-                const SizedBox(height: 100), // Space for FAB
+                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -120,8 +124,22 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildBalanceCard(FinanceProvider provider) {
+class BalanceCard extends StatelessWidget {
+  final double balance;
+  final double income;
+  final double expenses;
+
+  const BalanceCard({
+    super.key,
+    required this.balance,
+    required this.income,
+    required this.expenses,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -129,68 +147,43 @@ class HomeScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
         children: [
-          Text('Total Balance', style: TextStyle(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.w500)),
+          const Text(
+            'Total Balance',
+            style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14, fontWeight: FontWeight.w500),
+          ),
           const SizedBox(height: 8),
           Text(
-            '₹${provider.totalBalance.toStringAsFixed(2)}',
+            '₹${balance.toStringAsFixed(2)}',
             style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
           ),
           const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.arrow_upward_rounded, color: Color(0xFF10B981), size: 16),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Income', style: TextStyle(color: Color(0xFF065F46), fontSize: 11)),
-                          Text('₹${provider.totalIncome.toStringAsFixed(0)}', 
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF065F46))),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+              _BalanceSummaryItem(
+                label: 'Income',
+                amount: income,
+                color: const Color(0xFF10B981),
+                bgColor: const Color(0xFFECFDF5),
+                textColor: const Color(0xFF065F46),
+                icon: Icons.arrow_upward_rounded,
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEF2F2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.arrow_downward_rounded, color: Color(0xFFEF4444), size: 16),
-                      const SizedBox(width: 8),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Expenses', style: TextStyle(color: Color(0xFF991B1B), fontSize: 11)),
-                          Text('₹${provider.totalExpenses.toStringAsFixed(0)}', 
-                              style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF991B1B))),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
+              _BalanceSummaryItem(
+                label: 'Expenses',
+                amount: expenses,
+                color: const Color(0xFFEF4444),
+                bgColor: const Color(0xFFFEF2F2),
+                textColor: const Color(0xFF991B1B),
+                icon: Icons.arrow_downward_rounded,
               ),
             ],
           ),
@@ -198,8 +191,73 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildGoalCard(dynamic goal, double currentBalance, double progress) {
+class _BalanceSummaryItem extends StatelessWidget {
+  final String label;
+  final double amount;
+  final Color color;
+  final Color bgColor;
+  final Color textColor;
+  final IconData icon;
+
+  const _BalanceSummaryItem({
+    required this.label,
+    required this.amount,
+    required this.color,
+    required this.bgColor,
+    required this.textColor,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 16),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: TextStyle(color: textColor, fontSize: 11)),
+                  Text(
+                    '₹${amount.toStringAsFixed(0)}',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: textColor),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GoalProgressCard extends StatelessWidget {
+  final Goal goal;
+  final double currentBalance;
+  final double progress;
+
+  const GoalProgressCard({
+    super.key,
+    required this.goal,
+    required this.currentBalance,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -207,7 +265,11 @@ class HomeScreen extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
         ],
       ),
       child: Column(
@@ -221,7 +283,7 @@ class HomeScreen extends StatelessWidget {
                 child: CircularProgressIndicator(
                   value: progress,
                   strokeWidth: 12,
-                  backgroundColor: Colors.grey.shade100,
+                  backgroundColor: const Color(0xFFF1F5F9),
                   valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFF59E0B)),
                   strokeCap: StrokeCap.round,
                 ),
@@ -230,34 +292,39 @@ class HomeScreen extends StatelessWidget {
                 children: [
                   Text('${(progress * 100).toInt()}%', 
                       style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
-                  const Text('PROGRESS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                  const Text('PROGRESS', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8))),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 24),
-          Text('Savings Goal', style: TextStyle(color: Colors.grey.shade500, fontSize: 14, fontWeight: FontWeight.w500)),
+          const Text('Savings Goal', style: TextStyle(color: Color(0xFF94A3B8), fontSize: 14, fontWeight: FontWeight.w500)),
           const SizedBox(height: 4),
           Text(
             '₹${currentBalance.toStringAsFixed(0)} saved',
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
           ),
           const SizedBox(height: 4),
-          Text('Goal: ₹${goal.targetAmount.toStringAsFixed(0)}', style: TextStyle(color: Colors.grey.shade400, fontSize: 12)),
+          Text('Goal: ₹${goal.targetAmount.toStringAsFixed(0)}', style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 12)),
         ],
       ),
     );
   }
+}
 
-  Widget _buildEmptyState() {
+class EmptyTransactionsState extends StatelessWidget {
+  const EmptyTransactionsState({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 40),
-      child: Column(
+      child: const Column(
         children: [
-          Icon(Icons.history_rounded, size: 48, color: Colors.grey.shade200),
+          Icon(Icons.history_rounded, size: 48, color: Color(0xFFF1F5F9)),
           const SizedBox(height: 12),
-          Text('No transactions yet', style: TextStyle(color: Colors.grey.shade500)),
+          Text('No transactions yet', style: TextStyle(color: Color(0xFF94A3B8))),
         ],
       ),
     );
