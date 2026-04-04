@@ -30,7 +30,7 @@ Built with high-performance, modern Android development practices:
 Want to go deep and get more control?
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/whybhav360/budgetbuddy_lite.git
+   git clone https://github.com/whybhav360/kash.git
    ```
 
 2. **Install dependencies**
@@ -50,14 +50,14 @@ Want to go deep and get more control?
 - `lib/models/`: Data structures (Transaction, Goal, etc.).
 - `lib/providers/`: Business logic and state management.
 - `lib/screens/`: Feature-specific UI (Home, Activity, Insights, Goals).
-- `lib/services/`: Core services like Database (Hive) initialization.
+- `lib/services/`: Database (Hive) initialization.
 - `lib/widgets/`: Reusable UI components (Transaction tiles, Goal cards, etc.).
 
 ---
 
 ## Let's Connect!
 
-Found a bug or have a feature request? We'd love to hear from you! Feel free to open an issue or submit a pull request.
+Found a bug or have a feature request? Feel free to open an issue or submit a pull request.
 
 ---
 Made By -> Vaibhav Madaan
