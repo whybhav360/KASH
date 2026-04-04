@@ -35,7 +35,6 @@ class FinanceProvider with ChangeNotifier {
 
   void _loadData() {
     _transactions = _transactionBox?.values.toList() ?? [];
-    // Sort by date descending
     _transactions.sort((a, b) => b.date.compareTo(a.date));
     _goals = _goalBox?.values.toList() ?? [];
     notifyListeners();
@@ -46,7 +45,6 @@ class FinanceProvider with ChangeNotifier {
     _loadData();
   }
 
-  // Transactions
   Future<void> addTransaction(Transaction transaction) async {
     await _transactionBox?.add(transaction);
     _loadData();
@@ -62,7 +60,6 @@ class FinanceProvider with ChangeNotifier {
     _loadData();
   }
 
-  // Goals
   Future<void> addGoal(Goal goal) async {
     await _goalBox?.add(goal);
     _loadData();
@@ -101,11 +98,10 @@ class FinanceProvider with ChangeNotifier {
     }
     
     final dates = _transactions.map((t) => DateTime(t.date.year, t.date.month)).toSet().toList();
-    dates.sort((a, b) => b.compareTo(a)); // Newest first
+    dates.sort((a, b) => b.compareTo(a));
     return dates;
   }
 
-  // Insights Data
   double get currentMonthExpenses {
     final now = DateTime.now();
     return _transactions

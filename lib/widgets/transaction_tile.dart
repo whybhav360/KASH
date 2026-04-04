@@ -18,7 +18,6 @@ class TransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpense = transaction.type == TransactionType.expense;
     
-    // Select icon based on category
     IconData iconData;
     Color iconBgColor;
     Color iconColor;

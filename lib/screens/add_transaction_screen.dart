@@ -62,7 +62,6 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
     if (_type == newType) return;
     setState(() {
       _type = newType;
-      // Reset category to the first one in the new list to avoid validation errors
       _category = _type == TransactionType.expense 
           ? _expenseCategories.first 
           : _incomeCategories.first;

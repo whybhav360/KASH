@@ -20,7 +20,6 @@ class _InsightsScreenState extends State<InsightsScreen> {
     
     final availableMonths = financeProvider.availableMonths;
     
-    // Ensure _selectedMonth is valid and present in availableMonths
     if (_selectedMonth == null || !availableMonths.contains(_selectedMonth)) {
       _selectedMonth = availableMonths.first;
     }
