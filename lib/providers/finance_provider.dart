@@ -83,12 +83,23 @@ class FinanceProvider with ChangeNotifier {
 
   double get totalBalance => totalIncome - totalExpenses;
 
-  Map<String, double> get categoryTotals {
+  Map<String, double> getCategoryTotalsForMonth(int month, int year) {
     Map<String, double> totals = {};
-    for (var t in _transactions.where((t) => t.type == TransactionType.expense)) {
+    for (var t in _transactions.where((t) =>
+        t.type == TransactionType.expense &&
+        t.date.month == month &&
+        t.date.year == year)) {
       totals[t.category] = (totals[t.category] ?? 0) + t.amount;
     }
     return totals;
+  }
+
+  List<DateTime> get availableMonths {
+    if (_transactions.isEmpty) return [DateTime.now()];
+    
+    final dates = _transactions.map((t) => DateTime(t.date.year, t.date.month)).toSet().toList();
+    dates.sort((a, b) => b.compareTo(a)); // Newest first
+    return dates;
   }
 
   // Insights Data

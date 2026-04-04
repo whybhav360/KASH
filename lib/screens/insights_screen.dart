@@ -1,15 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
 import '../widgets/chart_widget.dart';
 
-class InsightsScreen extends StatelessWidget {
+class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key});
+
+  @override
+  State<InsightsScreen> createState() => _InsightsScreenState();
+}
+
+class _InsightsScreenState extends State<InsightsScreen> {
+  DateTime? _selectedMonth;
 
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
-    final categoryTotals = financeProvider.categoryTotals;
+    
+    final availableMonths = financeProvider.availableMonths;
+    _selectedMonth ??= availableMonths.first;
+
+    final categoryTotals = financeProvider.getCategoryTotalsForMonth(
+      _selectedMonth!.month, 
+      _selectedMonth!.year
+    );
     
     String highestCategory = 'N/A';
     double highestAmount = 0;
@@ -72,9 +87,39 @@ class InsightsScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Category Breakdown',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Category Breakdown',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<DateTime>(
+                              value: _selectedMonth,
+                              icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
+                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
+                              onChanged: (DateTime? newValue) {
+                                setState(() {
+                                  _selectedMonth = newValue;
+                                });
+                              },
+                              items: availableMonths.map<DropdownMenuItem<DateTime>>((DateTime date) {
+                                return DropdownMenuItem<DateTime>(
+                                  value: date,
+                                  child: Text(DateFormat('MMM yyyy').format(date)),
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 24),
                     SizedBox(
