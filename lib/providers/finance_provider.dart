@@ -95,7 +95,10 @@ class FinanceProvider with ChangeNotifier {
   }
 
   List<DateTime> get availableMonths {
-    if (_transactions.isEmpty) return [DateTime.now()];
+    if (_transactions.isEmpty) {
+      final now = DateTime.now();
+      return [DateTime(now.year, now.month)];
+    }
     
     final dates = _transactions.map((t) => DateTime(t.date.year, t.date.month)).toSet().toList();
     dates.sort((a, b) => b.compareTo(a)); // Newest first

@@ -19,7 +19,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
     final financeProvider = Provider.of<FinanceProvider>(context);
     
     final availableMonths = financeProvider.availableMonths;
-    _selectedMonth ??= availableMonths.first;
+    
+    // Ensure _selectedMonth is valid and present in availableMonths
+    if (_selectedMonth == null || !availableMonths.contains(_selectedMonth)) {
+      _selectedMonth = availableMonths.first;
+    }
 
     final categoryTotals = financeProvider.getCategoryTotalsForMonth(
       _selectedMonth!.month, 
