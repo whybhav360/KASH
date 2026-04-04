@@ -26,7 +26,7 @@ class SummaryCard extends StatelessWidget {
         border: isMain ? null : Border.all(color: Colors.grey.shade100),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(isMain ? 0.3 : 0.05),
+            color: color.withValues(alpha: isMain ? 0.3 : 0.05),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -38,7 +38,7 @@ class SummaryCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: isMain ? Colors.white.withOpacity(0.2) : color.withOpacity(0.1),
+              color: isMain ? Colors.white.withValues(alpha: 0.2) : color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: isMain ? Colors.white : color, size: 20),
@@ -47,7 +47,7 @@ class SummaryCard extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: isMain ? Colors.white.withOpacity(0.8) : Colors.grey.shade600,
+              color: isMain ? Colors.white.withValues(alpha: 0.8) : Colors.grey.shade600,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),

@@ -32,7 +32,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10),
                 ],
               ),
               child: PopupMenuButton<String>(
@@ -104,7 +104,7 @@ class _TransactionsScreenState extends State<TransactionsScreen> {
                   color: Colors.white,
                   shape: BoxShape.circle,
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 20),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20),
                   ],
                 ),
                 child: Icon(Icons.receipt_long_rounded, size: 64, color: Colors.grey.shade200),

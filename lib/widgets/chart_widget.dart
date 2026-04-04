@@ -112,7 +112,7 @@ class _Badge extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.1),
+            color: Colors.black.withValues(alpha: .1),
             offset: const Offset(1, 1),
             blurRadius: 3,
           ),

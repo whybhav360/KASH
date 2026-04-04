@@ -62,7 +62,7 @@ class GoalsScreen extends StatelessWidget {
                   color: Colors.white,
                   shape: BoxShape.circle,
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 20),
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20),
                   ],
                 ),
                 child: Icon(Icons.track_changes_rounded, size: 64, color: Colors.grey.shade200),
