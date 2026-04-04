@@ -1,63 +1,66 @@
-(Note:(The readme was created using Gemini and a very tired developer))
+# Kash - Smart Money Tracking
 
-#  BudgetBuddy Lite
+**Kash** is a modern, minimalist personal finance tracker built to help you master your money with zero stress. Designed for clarity and privacy, Kash keeps your financial data exactly where it belongs—on your device.
 
-Hey there! Ever looked at your bank account at the end of the month and wondered where all your money went? I know I have. That's why I created **BudgetBuddy Lite**. It's not just another complicated finance app. It's a friendly tool that can help you relax a little when it comes to your money.
+## Why Kash
 
----
-
-## Why you'll love it
-
-- **A Friendly 'Good Morning'**: Wake up to a clear view of your wallet. No clutter, just the numbers you need to know.
-- **See the Big Picture**: Our easy-to-read charts will help you spot those 'too many coffees' habits before they become a problem.
-- **Dream Big**: Whether you want a shiny new laptop or a relaxing vacation, track your savings goals and watch your progress bar fill up.
-- **No Stress, No Internet**: Your data stays on your phone. Private, fast, and works even when you're out of range.
-- **Feels Just Right**: Clean design, calming colors. No stress when you're managing your money.
-
-##  What's under the hood?
-
-I've kept it modern and fast so the app never gets in your way:
-- **Flutter** for that smooth-as-butter feel.
-- **Provider** to keep everything in sync.
-- **Hive** for lightning-fast, local storage.
-- **fl_chart** to make your data look beautiful.
+- **Clean Dashboard**: A beautiful, unified view of your total balance, income, and expenses at a glance.
+- **Smart Insights**: Interactive category-based charts with monthly filtering to spot spending trends instantly.
+- **Goal Oriented**: Set savings goals for your dreams (like a new laptop or vacation) and track your progress in real-time.
+- **Effortless Activity**: Log transactions in seconds. Use the built-in filters to see exactly where your money goes.
+- **Privacy First**: Completely offline-first. No cloud, no tracking, no internet required. Your data is stored locally using Hive.
+- **Modern UI**: Smooth animations, intuitive gestures (like hold-to-delete), and a calming design language.
 
 ---
 
-## Get up and running
+## Tech Stack
 
-Want to give it a spin? It's easy:
-1. **Get the code**
+Built with high-performance, modern Android development practices:
+- **Flutter**: For a smooth, native-feeling cross-platform experience.
+- **Provider**: Clean state management for a responsive UI.
+- **Hive**: Lightning-fast, local NoSQL database for offline persistence.
+- **fl_chart**: Dynamic, responsive data visualizations.
+- **Clean Architecture**: Decoupled UI, providers, and services for easy maintainability.
+
+---
+
+## Want to try it on your own?
+(P.S. You can just download the APK from the releases tab)
+
+Want to go deep and get more control?
+1. **Clone the repository**
    ```bash
    git clone https://github.com/whybhav360/budgetbuddy_lite.git
    ```
 
-2. **Get the bits and pieces**
+2. **Install dependencies**
    ```bash
    flutter pub get
    ```
 
-3. **Hit Play**
+3. **Run the app**
    ```bash
    flutter run
    ```
 
 ---
 
-## How it's organized
+## Project Structure
 
-Want to dig in as a developer? I've kept the 'house' very clean:
-- `models/`: Where your data lives.
-- `providers/`: The "brains" of the operation.
-- `screens/`: The beautiful faces of the app.
-- `services/`: The quiet workers in the background.
-- `widgets/`: The reusable building blocks.
-
----
-
-## Let's talk!
-
-Have an idea to make BudgetBuddy even more awesome? Or perhaps found a bug that needs squashing? I'd love to hear from you. Create an issue or send over a pull request!
+- `lib/models/`: Data structures (Transaction, Goal, etc.).
+- `lib/providers/`: Business logic and state management.
+- `lib/screens/`: Feature-specific UI (Home, Activity, Insights, Goals).
+- `lib/services/`: Core services like Database (Hive) initialization.
+- `lib/widgets/`: Reusable UI components (Transaction tiles, Goal cards, etc.).
 
 ---
-*Built with care to help you master your money.*
+
+## Let's Connect!
+
+Found a bug or have a feature request? We'd love to hear from you! Feel free to open an issue or submit a pull request.
+
+---
+Made By -> Vaibhav Madaan
+Linkedin: https://www.linkedin.com/in/vaibhav360/
+GitHub: https://github.com/whybhav360
+and a lot of boilerplating by Gemini
