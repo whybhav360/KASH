@@ -323,7 +323,7 @@ class EmptyTransactionsState extends StatelessWidget {
       child: const Column(
         children: [
           Icon(Icons.history_rounded, size: 48, color: Color(0xFFF1F5F9)),
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           Text('No transactions yet', style: TextStyle(color: Color(0xFF94A3B8))),
         ],
       ),
