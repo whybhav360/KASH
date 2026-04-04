@@ -16,9 +16,6 @@ void main() async {
   final financeProvider = FinanceProvider();
   await financeProvider.init();
 
-  if (financeProvider.transactions.isEmpty) {
-    DatabaseService.preloadDemoData(financeProvider);
-  }
 
   runApp(
     MultiProvider(
@@ -43,10 +40,9 @@ class BudgetBuddyApp extends StatelessWidget {
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF4A6CF7),
-          primary: const Color(0xFF4A6CF7), // Brand Blue
-          secondary: const Color(0xFF6366F1), // Purple for FAB
+          primary: const Color(0xFF4A6CF7),
+          secondary: const Color(0xFF6366F1),
           surface: Colors.white,
-          // ignore: deprecated_member_use
           background: const Color(0xFFF8FAFC),
         ),
         textTheme: const TextTheme(
@@ -108,20 +104,24 @@ class MainNavigation extends StatelessWidget {
           elevation: 0,
           items: const [
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.home_filled)),
+              icon: Icon(Icons.home),
               label: 'Home',
+              activeIcon: Icon(Icons.home_filled),
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.receipt_long_rounded)),
+              icon: Icon(Icons.receipt_long_rounded),
               label: 'Transactions',
+              activeIcon: Icon(Icons.receipt),
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.analytics_rounded)),
+              icon: Icon(Icons.analytics),
               label: 'Insights',
+              activeIcon: Icon(Icons.analytics_outlined),
             ),
             BottomNavigationBarItem(
-              icon: Padding(padding: EdgeInsets.only(bottom: 4), child: Icon(Icons.track_changes_rounded)),
+              icon: Icon(Icons.track_changes_rounded),
               label: 'Goals',
+              activeIcon: Icon(Icons.money),
             ),
           ],
         ),
