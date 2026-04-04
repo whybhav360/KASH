@@ -62,8 +62,8 @@ Found a bug or have a feature request? Feel free to open an issue or submit a pu
 ---
 Made By -> Vaibhav Madaan
 
-Linkedin: https://www.linkedin.com/in/vaibhav360/
+LinkedIn: https://www.linkedin.com/in/vaibhav360/
 
 GitHub: https://github.com/whybhav360
 
-and a lot of boilerplating by Gemini
+and a lot of boilerplate by Gemini
