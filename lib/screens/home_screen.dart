@@ -107,7 +107,7 @@ class HomeScreen extends StatelessWidget {
                       onDelete: () => financeProvider.deleteTransaction(tx),
                     ),
                 
-                const SizedBox(height: 10),
+                const SizedBox(height: 30),
               ],
             ),
           ),
