@@ -55,6 +55,17 @@ Want to go deep and get more control?
 
 ---
 
+## Screenshots
+
+<img width="180" height="240" alt="Screenshot_20260406_014421" src="https://github.com/user-attachments/assets/7064f510-77e0-4540-bacd-7cba951829cf" />
+<img width="180" height="240" alt="Screenshot_20260406_014416" src="https://github.com/user-attachments/assets/5792be2a-2c84-46eb-a2e5-06d91eba64be" />
+<img width="180" height="240" alt="Screenshot_20260406_014421" src="https://github.com/user-attachments/assets/56a6ad40-2dbe-407c-aecc-d1c92e6e66c1" />
+<img width="180" height="240" alt="Screenshot_20260406_014425" src="https://github.com/user-attachments/assets/7e363425-aeee-4fdd-895e-875feafd9805" />
+
+
+
+
+
 ## Let's Connect!
 
 Found a bug or have a feature request? Feel free to open an issue or submit a pull request.
