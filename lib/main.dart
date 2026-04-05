@@ -13,7 +13,6 @@ void main() async {
   final financeProvider = FinanceProvider();
   await financeProvider.init();
 
-
   runApp(
     MultiProvider(
       providers: [
