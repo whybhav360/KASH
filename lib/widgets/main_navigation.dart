@@ -42,24 +42,24 @@ class MainNavigation extends StatelessWidget {
           elevation: 0,
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home),
+              icon: Icon(Icons.home_outlined),
               label: 'Home',
               activeIcon: Icon(Icons.home_filled),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.receipt_long_rounded),
-              label: 'Transactions',
-              activeIcon: Icon(Icons.receipt),
+              icon: Icon(Icons.receipt_long_outlined),
+              label: 'Activity',
+              activeIcon: Icon(Icons.receipt_long_rounded),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.analytics),
+              icon: Icon(Icons.analytics_outlined),
               label: 'Insights',
-              activeIcon: Icon(Icons.analytics_outlined),
+              activeIcon: Icon(Icons.analytics_rounded),
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.track_changes_rounded),
+              icon: Icon(Icons.track_changes_outlined),
               label: 'Goals',
-              activeIcon: Icon(Icons.money),
+              activeIcon: Icon(Icons.track_changes_rounded),
             ),
           ],
         ),

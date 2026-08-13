@@ -24,6 +24,8 @@ class Transaction extends HiveObject {
   DateTime date;
   @HiveField(5)
   String note;
+  @HiveField(6)
+  String? accountId;
 
   Transaction({
     required this.id,
@@ -32,5 +34,6 @@ class Transaction extends HiveObject {
     required this.category,
     required this.date,
     required this.note,
+    this.accountId,
   });
 }

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
@@ -20,41 +21,35 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   late TransactionType _type;
   late DateTime _date;
   late String _note;
+  late String _selectedAccountId;
 
   final List<String> _expenseCategories = [
-    'Food',
-    'Transport',
-    'Rent',
-    'Entertainment',
-    'Health',
-    'Groceries',
-    'Shopping',
-    'Other'
+    'Food', 'Transport', 'Rent', 'Entertainment', 'Health', 'Groceries', 'Shopping', 'Other'
   ];
 
   final List<String> _incomeCategories = [
-    'Salary',
-    'Gift',
-    'Investment',
-    'Business',
-    'Other'
+    'Salary', 'Gift', 'Investment', 'Business', 'Other'
   ];
 
   @override
   void initState() {
     super.initState();
+    final provider = Provider.of<FinanceProvider>(context, listen: false);
+    
     if (widget.transaction != null) {
       _amount = widget.transaction!.amount;
       _category = widget.transaction!.category;
       _type = widget.transaction!.type;
       _date = widget.transaction!.date;
       _note = widget.transaction!.note;
+      _selectedAccountId = widget.transaction!.accountId ?? 'default';
     } else {
       _amount = 0;
       _type = TransactionType.expense;
       _category = _expenseCategories.first;
       _date = DateTime.now();
       _note = '';
+      _selectedAccountId = provider.accounts.isNotEmpty ? provider.accounts.first.id : 'default';
     }
   }
 
@@ -70,7 +65,9 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<FinanceProvider>(context);
     final currentCategories = _type == TransactionType.expense ? _expenseCategories : _incomeCategories;
+    final accounts = provider.accounts;
 
     return Scaffold(
       appBar: AppBar(
@@ -84,6 +81,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Type Toggle
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -112,6 +110,48 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+
+              // Account Selector
+              const Text('Select Account', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF1E293B))),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: accounts.any((a) => a.id == _selectedAccountId) 
+                    ? _selectedAccountId 
+                    : (accounts.isNotEmpty ? accounts.first.id : null),
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  filled: true,
+                  fillColor: const Color(0xFFF8FAFC),
+                ),
+                items: accounts.map((acc) => DropdownMenuItem(
+                  value: acc.id,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Color(acc.colorHex).withOpacity(0.1),
+                          image: acc.customImagePath != null 
+                              ? DecorationImage(image: FileImage(File(acc.customImagePath!)), fit: BoxFit.cover) 
+                              : null,
+                        ),
+                        child: acc.customImagePath == null 
+                            ? Icon(Icons.account_balance_rounded, size: 14, color: Color(acc.colorHex)) 
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(acc.name),
+                    ],
+                  ),
+                )).toList(),
+                onChanged: (value) => setState(() => _selectedAccountId = value!),
+              ),
+              const SizedBox(height: 24),
+
+              // Amount field
               TextFormField(
                 initialValue: _amount == 0 ? '' : _amount.toString(),
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
@@ -133,6 +173,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 onSaved: (value) => _amount = double.parse(value!),
               ),
               const SizedBox(height: 24),
+
+              // Category selector
               DropdownButtonFormField<String>(
                 initialValue: _category,
                 decoration: InputDecoration(
@@ -144,6 +186,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 onChanged: (value) => setState(() => _category = value!),
               ),
               const SizedBox(height: 24),
+
+              // Date picker
               InkWell(
                 onTap: () async {
                   DateTime? picked = await showDatePicker(
@@ -167,6 +211,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+
+              // Note field
               TextFormField(
                 initialValue: _note,
                 decoration: InputDecoration(
@@ -177,11 +223,12 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 onSaved: (value) => _note = value ?? '',
               ),
               const SizedBox(height: 40),
+
+              // Submit Button
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    final provider = Provider.of<FinanceProvider>(context, listen: false);
                     
                     if (widget.transaction == null) {
                       final newTx = Transaction(
@@ -191,6 +238,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         category: _category,
                         date: _date,
                         note: _note,
+                        accountId: _selectedAccountId,
                       );
                       provider.addTransaction(newTx);
                     } else {
@@ -199,6 +247,7 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                       widget.transaction!.category = _category;
                       widget.transaction!.date = _date;
                       widget.transaction!.note = _note;
+                      widget.transaction!.accountId = _selectedAccountId;
                       provider.updateTransaction(widget.transaction!);
                     }
                     Navigator.pop(context);
