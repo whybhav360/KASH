@@ -21,16 +21,9 @@ class SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isMain ? color : Colors.white,
+        color: isMain ? color : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: isMain ? null : Border.all(color: Colors.grey.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(isMain ? 0.3 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        border: isMain ? null : Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,7 +40,7 @@ class SummaryCard extends StatelessWidget {
           Text(
             title,
             style: TextStyle(
-              color: isMain ? Colors.white.withOpacity(0.8) : Colors.grey.shade600,
+              color: isMain ? Colors.white.withOpacity(0.8) : Theme.of(context).textTheme.bodySmall?.color,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -58,7 +51,7 @@ class SummaryCard extends StatelessWidget {
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: isMain ? Colors.white : const Color(0xFF1E293B),
+              color: isMain ? Colors.white : Theme.of(context).textTheme.bodyLarge?.color,
             ),
           ),
         ],

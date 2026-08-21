@@ -3,22 +3,31 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/transaction.dart';
 import '../models/goal.dart';
 import '../models/account.dart';
+import '../models/transaction_template.dart';
 
 class FinanceProvider with ChangeNotifier {
   Box<Transaction>? _transactionBox;
   Box<Goal>? _goalBox;
   Box<Account>? _accountBox;
+  Box<TransactionTemplate>? _templateBox;
   Box? _settingsBox;
 
   List<Transaction> _transactions = [];
   List<Goal> _goals = [];
   List<Account> _accounts = [];
+  List<TransactionTemplate> _templates = [];
   String _userName = 'User';
+  String? _userProfilePicture;
+  List<String> _expenseCategories = ['Food', 'Transport', 'Rent', 'Entertainment', 'Health', 'Groceries', 'Shopping', 'Other'];
+  List<String> _incomeCategories = ['Salary', 'Gift', 'Investment', 'Business', 'Other'];
   TransactionType? _filterType;
   String? _filterAccountId;
 
   List<Transaction> get transactions => _transactions;
   String get userName => _userName;
+  String? get userProfilePicture => _userProfilePicture;
+  List<String> get expenseCategories => _expenseCategories;
+  List<String> get incomeCategories => _incomeCategories;
   
   List<Transaction> get filteredTransactions {
     return _transactions.where((t) {
@@ -43,11 +52,13 @@ class FinanceProvider with ChangeNotifier {
 
   List<Goal> get goals => _goals;
   List<Account> get accounts => _accounts;
+  List<TransactionTemplate> get templates => _templates;
 
   Future<void> init() async {
     _transactionBox = await Hive.openBox<Transaction>('transactions');
     _goalBox = await Hive.openBox<Goal>('goals');
     _accountBox = await Hive.openBox<Account>('accounts');
+    _templateBox = await Hive.openBox<TransactionTemplate>('templates');
     _settingsBox = await Hive.openBox('settings');
     
     // Create default account if none exists
@@ -83,13 +94,51 @@ class FinanceProvider with ChangeNotifier {
     _transactions.sort((a, b) => b.date.compareTo(a.date));
     _goals = _goalBox?.values.toList() ?? [];
     _accounts = _accountBox?.values.toList() ?? [];
+    _templates = _templateBox?.values.toList() ?? [];
     _userName = _settingsBox?.get('userName', defaultValue: 'John Doe') ?? 'John Doe';
+    _userProfilePicture = _settingsBox?.get('profilePicture');
+    _expenseCategories = List<String>.from(_settingsBox?.get('expenseCategories', defaultValue: ['Food', 'Transport', 'Rent', 'Entertainment', 'Health', 'Groceries', 'Shopping', 'Other']));
+    _incomeCategories = List<String>.from(_settingsBox?.get('incomeCategories', defaultValue: ['Salary', 'Gift', 'Investment', 'Business', 'Other']));
     notifyListeners();
   }
 
   Future<void> setUserName(String name) async {
     await _settingsBox?.put('userName', name);
     _userName = name;
+    notifyListeners();
+  }
+
+  Future<void> setUserProfilePicture(String? path) async {
+    await _settingsBox?.put('profilePicture', path);
+    _userProfilePicture = path;
+    notifyListeners();
+  }
+
+  Future<void> addExpenseCategory(String category) async {
+    if (!_expenseCategories.contains(category)) {
+      _expenseCategories.add(category);
+      await _settingsBox?.put('expenseCategories', _expenseCategories);
+      notifyListeners();
+    }
+  }
+
+  Future<void> removeExpenseCategory(String category) async {
+    _expenseCategories.remove(category);
+    await _settingsBox?.put('expenseCategories', _expenseCategories);
+    notifyListeners();
+  }
+
+  Future<void> addIncomeCategory(String category) async {
+    if (!_incomeCategories.contains(category)) {
+      _incomeCategories.add(category);
+      await _settingsBox?.put('incomeCategories', _incomeCategories);
+      notifyListeners();
+    }
+  }
+
+  Future<void> removeIncomeCategory(String category) async {
+    _incomeCategories.remove(category);
+    await _settingsBox?.put('incomeCategories', _incomeCategories);
     notifyListeners();
   }
 
@@ -128,6 +177,17 @@ class FinanceProvider with ChangeNotifier {
 
   Future<void> deleteTransaction(Transaction transaction) async {
     await transaction.delete();
+    _loadData();
+  }
+
+  // Template Management
+  Future<void> addTemplate(TransactionTemplate template) async {
+    await _templateBox?.add(template);
+    _loadData();
+  }
+
+  Future<void> deleteTemplate(TransactionTemplate template) async {
+    await template.delete();
     _loadData();
   }
 

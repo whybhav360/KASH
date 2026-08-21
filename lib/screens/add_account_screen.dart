@@ -68,7 +68,6 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(widget.account == null ? 'Add Bank Account' : 'Edit Bank Account', style: const TextStyle(fontSize: 18)),
         centerTitle: true,
@@ -91,20 +90,19 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Add New Account', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              Text('Add New Account', style: Theme.of(context).textTheme.headlineMedium),
               const SizedBox(height: 8),
-              const Text('Enter your bank account details to start tracking your finances.', 
-                style: TextStyle(color: Color(0xFF64748B), fontSize: 14)),
+              Text('Enter your bank account details to start tracking your finances.', 
+                style: Theme.of(context).textTheme.bodySmall),
               const SizedBox(height: 32),
               
-              const Text('Account Name', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              Text('Account Name', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
               TextFormField(
                 initialValue: _name,
                 decoration: InputDecoration(
                   hintText: 'e.g., Daily Expenses',
                   filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
                 validator: (value) => value == null || value.isEmpty ? 'Please enter a name' : null,
@@ -112,7 +110,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
               ),
               const SizedBox(height: 24),
               
-              const Text('Account Logo', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              Text('Account Logo', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -120,7 +118,7 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
+                      color: Theme.of(context).colorScheme.surfaceVariant,
                       borderRadius: BorderRadius.circular(12),
                       image: _customImagePath != null 
                           ? DecorationImage(image: FileImage(File(_customImagePath!)), fit: BoxFit.cover) 
@@ -143,27 +141,30 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
               ),
               const SizedBox(height: 24),
               
-              const Text('Initial Balance', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              Text('Initial Balance', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
               TextFormField(
                 decoration: InputDecoration(
-                  prefixText: '\$ ',
+                  prefixText: '₹ ',
+                  hintText: '0.00',
                   filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
                 keyboardType: TextInputType.number,
-                initialValue: _initialBalance.toStringAsFixed(2),
+                initialValue: widget.account == null ? '' : _initialBalance.toStringAsFixed(2),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) return 'Enter balance';
+                  if (value == null || value.trim().isEmpty) {
+                    if (widget.account == null) return null; // Allow empty for new account (default to 0)
+                    return 'Enter balance';
+                  }
                   if (double.tryParse(value) == null) return 'Enter valid number';
                   return null;
                 },
-                onSaved: (value) => _initialBalance = double.parse(value!),
+                onSaved: (value) => _initialBalance = (value == null || value.isEmpty) ? 0 : double.parse(value),
               ),
               const SizedBox(height: 24),
               
-              const Text('Bank Provider (Optional)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+              Text('Bank Provider (Optional)', style: Theme.of(context).textTheme.labelLarge),
               const SizedBox(height: 8),
               TextFormField(
                 initialValue: _bankProvider,
@@ -171,7 +172,6 @@ class _AddAccountScreenState extends State<AddAccountScreen> {
                   hintText: 'Search bank name',
                   prefixIcon: const Icon(Icons.account_balance_outlined, size: 20),
                   filled: true,
-                  fillColor: const Color(0xFFF8FAFC),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                 ),
                 onSaved: (value) => _bankProvider = value ?? '',

@@ -2,6 +2,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../models/transaction.dart';
 import '../models/goal.dart';
 import '../models/account.dart';
+import '../models/transaction_template.dart';
 
 class DatabaseService {
   static Future<void> init() async {
@@ -11,5 +12,6 @@ class DatabaseService {
     if (!Hive.isAdapterRegistered(1)) Hive.registerAdapter(TransactionAdapter());
     if (!Hive.isAdapterRegistered(2)) Hive.registerAdapter(GoalAdapter());
     if (!Hive.isAdapterRegistered(3)) Hive.registerAdapter(AccountAdapter());
+    if (!Hive.isAdapterRegistered(4)) Hive.registerAdapter(TransactionTemplateAdapter());
   }
 }

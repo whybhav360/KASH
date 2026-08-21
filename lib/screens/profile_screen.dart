@@ -1,7 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
+import '../providers/theme_provider.dart';
 import '../models/account.dart';
 import '../widgets/net_worth_card.dart';
 import 'add_account_screen.dart';
@@ -15,6 +19,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _nameController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -25,6 +30,62 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
   }
 
+  Future<void> _pickProfilePicture(FinanceProvider provider) async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null && mounted) {
+      final primaryColor = Theme.of(context).colorScheme.primary;
+      
+      final croppedFile = await ImageCropper().cropImage(
+        sourcePath: image.path,
+        uiSettings: [
+          AndroidUiSettings(
+            toolbarTitle: 'Crop Profile Picture',
+            toolbarColor: primaryColor,
+            toolbarWidgetColor: Colors.white,
+            aspectRatioPresets: [CropAspectRatioPreset.square],
+            initAspectRatio: CropAspectRatioPreset.square,
+            lockAspectRatio: true,
+          ),
+          IOSUiSettings(
+            title: 'Crop Profile Picture',
+            aspectRatioPresets: [CropAspectRatioPreset.square],
+          ),
+        ],
+      );
+
+      if (croppedFile != null) {
+        final appDir = await getApplicationDocumentsDirectory();
+        final fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final savedImage = await File(croppedFile.path).copy('${appDir.path}/$fileName');
+        await provider.setUserProfilePicture(savedImage.path);
+      }
+    }
+  }
+
+  void _showImagePreview(String? path) {
+    if (path == null) return;
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.file(File(path), fit: BoxFit.cover),
+            ),
+            const SizedBox(height: 16),
+            IconButton(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.close_rounded, color: Colors.white, size: 32),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showEditNameDialog(FinanceProvider provider) {
     _nameController.text = provider.userName;
     showDialog(
@@ -33,9 +94,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Edit Name'),
         content: TextFormField(
           controller: _nameController,
-          decoration: const InputDecoration(
-            hintText: 'Enter your name',
-          ),
+          decoration: const InputDecoration(hintText: 'Enter your name'),
         ),
         actions: [
           TextButton(
@@ -54,44 +113,160 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _showCategoryCustomization(bool isExpense) {
+    final provider = Provider.of<FinanceProvider>(context, listen: false);
+    final categories = isExpense ? provider.expenseCategories : provider.incomeCategories;
+    final newCategoryController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(isExpense ? 'Customise Expense Categories' : 'Customise Income Categories', 
+                style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: newCategoryController,
+                      decoration: const InputDecoration(hintText: 'New category name'),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      if (newCategoryController.text.isNotEmpty) {
+                        if (isExpense) {
+                          provider.addExpenseCategory(newCategoryController.text);
+                        } else {
+                          provider.addIncomeCategory(newCategoryController.text);
+                        }
+                        newCategoryController.clear();
+                        setModalState(() {});
+                      }
+                    },
+                    icon: const Icon(Icons.add_circle_rounded),
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.4),
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    final cat = categories[index];
+                    return ListTile(
+                      title: Text(cat),
+                      contentPadding: EdgeInsets.zero,
+                      trailing: IconButton(
+                        icon: const Icon(Icons.remove_circle_outline_rounded, color: Colors.red),
+                        onPressed: () {
+                          if (isExpense) {
+                            provider.removeExpenseCategory(cat);
+                          } else {
+                            provider.removeIncomeCategory(cat);
+                          }
+                          setModalState(() {});
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final financeProvider = Provider.of<FinanceProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final accounts = financeProvider.accounts;
+    final isDark = themeProvider.themeMode == ThemeMode.dark;
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Profile & Settings'),
         centerTitle: true,
-        backgroundColor: Colors.white,
-        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () => themeProvider.toggleTheme(!isDark),
+            icon: Icon(
+              isDark ? Icons.light_mode_rounded : Icons.dark_mode_rounded,
+            ),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
           children: [
             const SizedBox(height: 20),
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: Color(0xFFF1F5F9),
-              child: Icon(Icons.person_rounded, size: 50, color: Color(0xFF6366F1)),
+            GestureDetector(
+              onTap: () => _pickProfilePicture(financeProvider),
+              onLongPress: () => _showImagePreview(financeProvider.userProfilePicture),
+              child: Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+                    backgroundImage: financeProvider.userProfilePicture != null
+                        ? FileImage(File(financeProvider.userProfilePicture!))
+                        : null,
+                    child: financeProvider.userProfilePicture == null
+                        ? const Icon(Icons.person_rounded, size: 50)
+                        : null,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.camera_alt_rounded,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
+            InkWell(
+              onTap: () => _showEditNameDialog(financeProvider),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: Text(
                   financeProvider.userName,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineMedium,
                 ),
-                IconButton(
-                  onPressed: () => _showEditNameDialog(financeProvider),
-                  icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF6366F1)),
-                ),
-              ],
+              ),
             ),
             const SizedBox(height: 32),
-            
+
             // Net Worth Card shifted here
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -113,12 +288,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       const Text(
                         'BANK ACCOUNTS',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 1.2),
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF64748B),
+                          letterSpacing: 1.2,
+                        ),
                       ),
                       TextButton(
                         onPressed: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AddAccountScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const AddAccountScreen(),
+                          ),
                         ),
                         child: const Text('Add New'),
                       ),
@@ -127,9 +309,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: Theme.of(context).colorScheme.surface,
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFF1F5F9)),
+                      border: Border.all(
+                        color: Theme.of(context).dividerColor.withOpacity(0.1),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -138,7 +322,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             account: accounts[i],
                             onTap: () => Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => AddAccountScreen(account: accounts[i])),
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    AddAccountScreen(account: accounts[i]),
+                              ),
                             ),
                           ),
                           if (i < accounts.length - 1)
@@ -147,21 +334,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 32),
+                  const Text(
+                    'CATEGORIES',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF64748B),
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Theme.of(context).dividerColor.withOpacity(0.1),
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          title: const Text('Customise Expense'),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => _showCategoryCustomization(true),
+                        ),
+                        const Divider(height: 1, indent: 20, endIndent: 20),
+                        ListTile(
+                          title: const Text('Customise Income'),
+                          trailing: const Icon(Icons.chevron_right_rounded),
+                          onTap: () => _showCategoryCustomization(false),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-            
-            const SizedBox(height: 40),
-            OutlinedButton(
-              onPressed: () {},
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.red,
-                side: const BorderSide(color: Colors.red),
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: const Text('Log Out', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
+
             const SizedBox(height: 40),
           ],
         ),
@@ -187,23 +398,32 @@ class _AccountListTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: Color(account.colorHex).withOpacity(0.1),
           borderRadius: BorderRadius.circular(12),
-          image: account.customImagePath != null 
-              ? DecorationImage(image: FileImage(File(account.customImagePath!)), fit: BoxFit.cover) 
+          image: account.customImagePath != null
+              ? DecorationImage(
+                  image: FileImage(File(account.customImagePath!)),
+                  fit: BoxFit.cover,
+                )
               : null,
         ),
-        child: account.customImagePath == null 
-            ? Icon(Icons.account_balance_rounded, color: Color(account.colorHex))
+        child: account.customImagePath == null
+            ? Icon(
+                Icons.account_balance_rounded,
+                color: Color(account.colorHex),
+              )
             : null,
       ),
       title: Text(
         account.name,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
-        '${account.bankProvider ?? "Bank"} •••• ${account.id.length > 4 ? account.id.substring(account.id.length - 4) : "0000"}',
-        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+        account.bankProvider ?? "Bank",
+        style: const TextStyle(fontSize: 12),
       ),
-      trailing: const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
+      trailing: const Icon(
+        Icons.chevron_right_rounded,
+        color: Color(0xFFCBD5E1),
+      ),
     );
   }
 }
