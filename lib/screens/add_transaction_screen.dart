@@ -1,13 +1,17 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import '../models/account.dart';
 import '../models/transaction.dart';
+import '../models/transaction_template.dart';
 import '../providers/finance_provider.dart';
 
 class AddTransactionScreen extends StatefulWidget {
   final Transaction? transaction;
+  final TransactionTemplate? template;
 
-  const AddTransactionScreen({super.key, this.transaction});
+  const AddTransactionScreen({super.key, this.transaction, this.template});
 
   @override
   State<AddTransactionScreen> createState() => _AddTransactionScreenState();
@@ -20,57 +24,79 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
   late TransactionType _type;
   late DateTime _date;
   late String _note;
+  late String _selectedAccountId;
+  bool _saveAsTemplate = false;
+  final _templateNameController = TextEditingController();
 
   final List<String> _expenseCategories = [
-    'Food',
-    'Transport',
-    'Rent',
-    'Entertainment',
-    'Health',
-    'Groceries',
-    'Shopping',
-    'Other'
+    'Food', 'Transport', 'Rent', 'Entertainment', 'Health', 'Groceries', 'Shopping', 'Other'
   ];
 
   final List<String> _incomeCategories = [
-    'Salary',
-    'Gift',
-    'Investment',
-    'Business',
-    'Other'
+    'Salary', 'Gift', 'Investment', 'Business', 'Other'
   ];
 
   @override
   void initState() {
     super.initState();
+    final provider = Provider.of<FinanceProvider>(context, listen: false);
+    
     if (widget.transaction != null) {
       _amount = widget.transaction!.amount;
       _category = widget.transaction!.category;
       _type = widget.transaction!.type;
       _date = widget.transaction!.date;
       _note = widget.transaction!.note;
+      _selectedAccountId = widget.transaction!.accountId ?? 'default';
+    } else if (widget.template != null) {
+      _amount = widget.template!.amount;
+      _category = widget.template!.category;
+      _type = widget.template!.type;
+      _date = DateTime.now();
+      _note = widget.template!.note;
+      _selectedAccountId = widget.template!.accountId ?? (provider.accounts.isNotEmpty ? provider.accounts.first.id : 'default');
     } else {
       _amount = 0;
       _type = TransactionType.expense;
-      _category = _expenseCategories.first;
+      _category = provider.expenseCategories.isNotEmpty ? provider.expenseCategories.first : 'Other';
       _date = DateTime.now();
       _note = '';
+      _selectedAccountId = provider.accounts.isNotEmpty ? provider.accounts.first.id : 'default';
     }
+  }
+
+  @override
+  void dispose() {
+    _templateNameController.dispose();
+    super.dispose();
   }
 
   void _onTypeChanged(TransactionType newType) {
     if (_type == newType) return;
+    final provider = Provider.of<FinanceProvider>(context, listen: false);
     setState(() {
       _type = newType;
       _category = _type == TransactionType.expense 
-          ? _expenseCategories.first 
-          : _incomeCategories.first;
+          ? (provider.expenseCategories.isNotEmpty ? provider.expenseCategories.first : 'Other')
+          : (provider.incomeCategories.isNotEmpty ? provider.incomeCategories.first : 'Other');
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<FinanceProvider>(context);
     final currentCategories = _type == TransactionType.expense ? _expenseCategories : _incomeCategories;
+    final accounts = provider.accounts;
+    
+    // Dropdown fix: Move selected account to index 0
+    final List<Account> orderedAccounts = List.from(accounts);
+    if (_selectedAccountId != 'default') {
+      final selectedIndex = orderedAccounts.indexWhere((a) => a.id == _selectedAccountId);
+      if (selectedIndex > 0) {
+        final selected = orderedAccounts.removeAt(selectedIndex);
+        orderedAccounts.insert(0, selected);
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -84,10 +110,11 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Type Toggle
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
+                  color: Theme.of(context).colorScheme.surfaceVariant,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Row(
@@ -112,6 +139,46 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+
+              // Account Selector
+              Text('Select Account', style: Theme.of(context).textTheme.labelLarge),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                menuMaxHeight: 300,
+                value: _selectedAccountId,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                  filled: true,
+                ),
+                items: orderedAccounts.map((acc) => DropdownMenuItem(
+                  value: acc.id,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Color(acc.colorHex).withOpacity(0.1),
+                          image: acc.customImagePath != null 
+                              ? DecorationImage(image: FileImage(File(acc.customImagePath!)), fit: BoxFit.cover) 
+                              : null,
+                        ),
+                        child: acc.customImagePath == null 
+                            ? Icon(Icons.account_balance_rounded, size: 14, color: Color(acc.colorHex)) 
+                            : null,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(acc.name),
+                    ],
+                  ),
+                )).toList(),
+                onChanged: (value) => setState(() => _selectedAccountId = value!),
+              ),
+              const SizedBox(height: 24),
+
+              // Amount field
               TextFormField(
                 initialValue: _amount == 0 ? '' : _amount.toString(),
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
@@ -133,17 +200,30 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 onSaved: (value) => _amount = double.parse(value!),
               ),
               const SizedBox(height: 24),
+
+              // Category selector
               DropdownButtonFormField<String>(
-                initialValue: _category,
+                menuMaxHeight: 300,
+                value: _category,
                 decoration: InputDecoration(
                   labelText: 'Category',
                   prefixIcon: const Icon(Icons.category_outlined),
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                items: currentCategories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                items: (() {
+                  final List<String> orderedCats = List.from(currentCategories);
+                  final selectedIndex = orderedCats.indexOf(_category);
+                  if (selectedIndex > 0) {
+                    final selected = orderedCats.removeAt(selectedIndex);
+                    orderedCats.insert(0, selected);
+                  }
+                  return orderedCats.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList();
+                })(),
                 onChanged: (value) => setState(() => _category = value!),
               ),
               const SizedBox(height: 24),
+
+              // Date picker
               InkWell(
                 onTap: () async {
                   DateTime? picked = await showDatePicker(
@@ -167,6 +247,8 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
               ),
               const SizedBox(height: 24),
+
+              // Note field
               TextFormField(
                 initialValue: _note,
                 decoration: InputDecoration(
@@ -176,12 +258,40 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                 ),
                 onSaved: (value) => _note = value ?? '',
               ),
+              const SizedBox(height: 24),
+
+              // Save as Template Option
+              if (widget.transaction == null && _type == TransactionType.expense) ...[
+                CheckboxListTile(
+                  title: const Text('Save as repetitive expense (Template)', style: TextStyle(fontSize: 14)),
+                  value: _saveAsTemplate,
+                  onChanged: (val) => setState(() => _saveAsTemplate = val ?? false),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: const Color(0xFF6366F1),
+                ),
+                if (_saveAsTemplate)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: TextFormField(
+                      controller: _templateNameController,
+                      decoration: InputDecoration(
+                        labelText: 'Template Name',
+                        hintText: 'e.g., Morning Coffee',
+                        prefixIcon: const Icon(Icons.label_outline_rounded),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                      ),
+                      validator: (value) => _saveAsTemplate && (value == null || value.isEmpty) ? 'Enter template name' : null,
+                    ),
+                  ),
+              ],
               const SizedBox(height: 40),
+
+              // Submit Button
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    final provider = Provider.of<FinanceProvider>(context, listen: false);
                     
                     if (widget.transaction == null) {
                       final newTx = Transaction(
@@ -191,14 +301,29 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         category: _category,
                         date: _date,
                         note: _note,
+                        accountId: _selectedAccountId,
                       );
                       provider.addTransaction(newTx);
+
+                      if (_saveAsTemplate) {
+                        final template = TransactionTemplate(
+                          id: const Uuid().v4(),
+                          name: _templateNameController.text,
+                          amount: _amount,
+                          type: _type,
+                          category: _category,
+                          accountId: _selectedAccountId,
+                          note: _note,
+                        );
+                        provider.addTemplate(template);
+                      }
                     } else {
                       widget.transaction!.amount = _amount;
                       widget.transaction!.type = _type;
                       widget.transaction!.category = _category;
                       widget.transaction!.date = _date;
                       widget.transaction!.note = _note;
+                      widget.transaction!.accountId = _selectedAccountId;
                       provider.updateTransaction(widget.transaction!);
                     }
                     Navigator.pop(context);

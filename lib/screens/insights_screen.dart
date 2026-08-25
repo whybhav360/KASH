@@ -63,10 +63,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Insights'),
-        backgroundColor: const Color(0xFFF8FAFC),
+        centerTitle: false,
         surfaceTintColor: Colors.transparent,
       ),
       body: RefreshIndicator(
@@ -81,11 +80,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20, offset: const Offset(0, 10)),
-                  ],
+                  border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,32 +90,41 @@ class _InsightsScreenState extends State<InsightsScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
+                        Text(
                           'Category Breakdown',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B)),
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF1F5F9),
+                            color: Theme.of(context).colorScheme.surfaceVariant,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<DateTime>(
+                              menuMaxHeight: 300,
                               value: _selectedMonth,
                               icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Theme.of(context).colorScheme.primary),
                               onChanged: (DateTime? newValue) {
                                 setState(() {
                                   _selectedMonth = newValue;
                                 });
                               },
-                              items: availableMonths.map<DropdownMenuItem<DateTime>>((DateTime date) {
-                                return DropdownMenuItem<DateTime>(
-                                  value: date,
-                                  child: Text(DateFormat('MMM yyyy').format(date)),
-                                );
-                              }).toList(),
+                              items: (() {
+                                final List<DateTime> orderedMonths = List.from(availableMonths);
+                                final selectedIndex = orderedMonths.indexOf(_selectedMonth!);
+                                if (selectedIndex > 0) {
+                                  final selected = orderedMonths.removeAt(selectedIndex);
+                                  orderedMonths.insert(0, selected);
+                                }
+                                return orderedMonths.map<DropdownMenuItem<DateTime>>((DateTime date) {
+                                  return DropdownMenuItem<DateTime>(
+                                    value: date,
+                                    child: Text(DateFormat('MMM yyyy').format(date)),
+                                  );
+                                }).toList();
+                              })(),
                             ),
                           ),
                         ),
@@ -166,18 +172,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20, offset: const Offset(0, 10)),
-        ],
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Icon(icon, color: color, size: 28),
@@ -187,11 +191,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: TextStyle(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.w500)),
+                Text(title, style: Theme.of(context).textTheme.bodySmall),
                 const SizedBox(height: 4),
-                Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                Text(value, style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: 2),
-                Text(subtitle, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
+                Text(subtitle, style: Theme.of(context).textTheme.labelLarge?.copyWith(color: color)),
               ],
             ),
           ),

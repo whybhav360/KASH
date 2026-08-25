@@ -104,19 +104,12 @@ class _Badge extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         shape: BoxShape.circle,
         border: Border.all(
           color: color,
           width: 2,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: .1),
-            offset: const Offset(1, 1),
-            blurRadius: 3,
-          ),
-        ],
       ),
       padding: EdgeInsets.all(size * .15),
       child: Center(

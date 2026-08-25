@@ -1,15 +1,19 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/transaction.dart';
+import '../models/account.dart';
 
 class TransactionTile extends StatelessWidget {
   final Transaction transaction;
+  final Account? account;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
   const TransactionTile({
     super.key,
     required this.transaction,
+    this.account,
     this.onTap,
     this.onDelete,
   });
@@ -18,6 +22,7 @@ class TransactionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final isExpense = transaction.type == TransactionType.expense;
     
+    // Category based icon
     IconData iconData;
     Color iconBgColor;
     Color iconColor;
@@ -75,45 +80,79 @@ class TransactionTile extends StatelessWidget {
         break;
       default:
         iconData = Icons.category_rounded;
-        iconBgColor = const Color(0xFFF1F5F9);
-        iconColor = const Color(0xFF64748B);
+        iconBgColor = Theme.of(context).colorScheme.surfaceVariant;
+        iconColor = Theme.of(context).colorScheme.onSurfaceVariant;
     }
+
+    Widget leadingWidget = Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark 
+            ? iconColor.withOpacity(0.1) 
+            : iconBgColor,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(iconData, color: iconColor, size: 24),
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.05)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         onTap: onTap,
-        onLongPress: onDelete != null ? () {
-          _showDeleteDialog(context);
-        } : null,
-        leading: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: iconBgColor,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Icon(iconData, color: iconColor, size: 24),
-        ),
+        onLongPress: onDelete != null ? () => _showDeleteDialog(context) : null,
+        leading: leadingWidget,
         title: Text(
           transaction.category,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E293B)),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4.0),
-          child: Text(
-            transaction.note.isNotEmpty ? transaction.note : DateFormat('MMM dd, yyyy').format(transaction.date),
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-          ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (transaction.note.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  transaction.note,
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                ),
+              ),
+            Row(
+              children: [
+                if (account != null) ...[
+                  Container(
+                    width: 14,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Color(account!.colorHex).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      image: account!.customImagePath != null 
+                          ? DecorationImage(image: FileImage(File(account!.customImagePath!)), fit: BoxFit.cover) 
+                          : null,
+                    ),
+                    child: account!.customImagePath == null 
+                        ? Icon(Icons.account_balance_wallet_rounded, size: 8, color: Color(account!.colorHex))
+                        : null,
+                  ),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  DateFormat('MMM dd, yyyy').format(transaction.date),
+                  style: TextStyle(color: Colors.grey.shade400, fontSize: 10),
+                ),
+              ],
+            ),
+          ],
         ),
         trailing: Text(
           '${isExpense ? "-" : "+"}\u20B9${transaction.amount.toStringAsFixed(0)}',
           style: TextStyle(
-            color: isExpense ? const Color(0xFFD32F2F) : const Color(0xFF388E3C),
+            color: isExpense ? const Color(0xFFEF4444) : const Color(0xFF10B981),
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),

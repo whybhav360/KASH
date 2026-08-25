@@ -14,10 +14,9 @@ class GoalsScreen extends StatelessWidget {
     final goals = financeProvider.goals;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: const Text('Savings Goals'),
-        backgroundColor: const Color(0xFFF8FAFC),
+        centerTitle: false,
         surfaceTintColor: Colors.transparent,
       ),
       body: RefreshIndicator(
@@ -40,7 +39,25 @@ class GoalsScreen extends StatelessWidget {
               ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showGoalDialog(context, financeProvider),
+        onPressed: () {
+          // Open with a subtle scale/fade animation
+          showGeneralDialog(
+            context: context,
+            barrierDismissible: true,
+            barrierLabel: 'Goal Dialog',
+            transitionDuration: const Duration(milliseconds: 400),
+            pageBuilder: (context, animation, secondaryAnimation) => const SizedBox.shrink(),
+            transitionBuilder: (context, animation, secondaryAnimation, child) {
+              return ScaleTransition(
+                scale: animation,
+                child: FadeTransition(
+                  opacity: animation,
+                  child: _GoalDialog(provider: financeProvider),
+                ),
+              );
+            },
+          );
+        },
         icon: const Icon(Icons.add_rounded),
         label: const Text('New Goal'),
         backgroundColor: const Color(0xFF4F46E5),
@@ -59,13 +76,11 @@ class GoalsScreen extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 20),
-                  ],
+                  border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
                 ),
-                child: Icon(Icons.track_changes_rounded, size: 64, color: Colors.grey.shade200),
+                child: Icon(Icons.track_changes_rounded, size: 64, color: Theme.of(context).colorScheme.primary),
               ),
               const SizedBox(height: 24),
               Text(
@@ -79,89 +94,133 @@ class GoalsScreen extends StatelessWidget {
     );
   }
 
+  // Refactored Dialog to a separate Widget for easier animation
   void _showGoalDialog(BuildContext context, FinanceProvider provider, {Goal? goal}) {
-    final titleController = TextEditingController(text: goal?.title);
-    final amountController = TextEditingController(
-      text: goal == null ? '' : goal.targetAmount.toString(),
-    );
-    final formKey = GlobalKey<FormState>();
-
-    showDialog(
+    showGeneralDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(goal == null ? 'Add New Goal' : 'Edit Goal'),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        content: Form(
-          key: formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: titleController,
-                decoration: InputDecoration(
-                  labelText: 'Goal Title',
-                  hintText: 'e.g., New Laptop',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                validator: (value) =>
-                    (value == null || value.isEmpty) ? 'Enter title' : null,
+      barrierDismissible: true,
+      barrierLabel: 'Goal Dialog',
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (context, animation, secondaryAnimation) => const SizedBox.shrink(),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return ScaleTransition(
+          scale: animation,
+          child: FadeTransition(
+            opacity: animation,
+            child: _GoalDialog(provider: provider, goal: goal),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _GoalDialog extends StatefulWidget {
+  final FinanceProvider provider;
+  final Goal? goal;
+
+  const _GoalDialog({required this.provider, this.goal});
+
+  @override
+  State<_GoalDialog> createState() => _GoalDialogState();
+}
+
+class _GoalDialogState extends State<_GoalDialog> {
+  late TextEditingController titleController;
+  late TextEditingController amountController;
+  final formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    titleController = TextEditingController(text: widget.goal?.title);
+    amountController = TextEditingController(
+      text: widget.goal == null ? '' : widget.goal!.targetAmount.toString(),
+    );
+  }
+
+  @override
+  void dispose() {
+    titleController.dispose();
+    amountController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.goal == null ? 'Add New Goal' : 'Edit Goal'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      content: Form(
+        key: formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              controller: titleController,
+              decoration: InputDecoration(
+                labelText: 'Goal Title',
+                hintText: 'e.g., New Laptop',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: amountController,
-                decoration: InputDecoration(
-                  labelText: 'Target Amount',
-                  prefixText: '₹ ',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Enter amount';
-                  final amount = double.tryParse(value);
-                  if (amount == null) return 'Enter valid number';
-                  if (amount <= 0) return 'Amount must be positive';
-                  return null;
-                },
+              validator: (value) =>
+                  (value == null || value.isEmpty) ? 'Enter title' : null,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: amountController,
+              decoration: InputDecoration(
+                labelText: 'Target Amount',
+                prefixText: '₹ ',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               ),
-            ],
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Enter amount';
+                final amount = double.tryParse(value);
+                if (amount == null) return 'Enter valid number';
+                if (amount <= 0) return 'Amount must be positive';
+                return null;
+              },
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel')),
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
+          child: ElevatedButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final amount = double.parse(amountController.text);
+                if (widget.goal == null) {
+                  widget.provider.addGoal(Goal(
+                    id: const Uuid().v4(),
+                    title: titleController.text,
+                    targetAmount: amount,
+                  ));
+                } else {
+                  widget.goal!.title = titleController.text;
+                  widget.goal!.targetAmount = amount;
+                  widget.goal!.save();
+                  widget.provider.refreshData();
+                }
+                Navigator.pop(context);
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4F46E5),
+              foregroundColor: Colors.white,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            child: Text(widget.goal == null ? 'Add Goal' : 'Update Goal'),
           ),
         ),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel')),
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
-            child: ElevatedButton(
-              onPressed: () {
-                if (formKey.currentState!.validate()) {
-                  final amount = double.parse(amountController.text);
-                  if (goal == null) {
-                    provider.addGoal(Goal(
-                      id: const Uuid().v4(),
-                      title: titleController.text,
-                      targetAmount: amount,
-                    ));
-                  } else {
-                    goal.title = titleController.text;
-                    goal.targetAmount = amount;
-                    goal.save();
-                    provider.refreshData();
-                  }
-                  Navigator.pop(context);
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF4F46E5),
-                foregroundColor: Colors.white,
-                shape:
-                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              child: Text(goal == null ? 'Add Goal' : 'Update Goal'),
-            ),
-          ),
-        ],
-      ),
+      ],
     );
   }
 }
