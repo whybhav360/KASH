@@ -1,33 +1,51 @@
-# Kash - Smart Money Tracking
+# KASH — Personal Finance
 
-**Kash** is a modern, minimalist personal finance tracker built to help you master your money with zero stress. Designed for clarity and privacy, Kash keeps your financial data exactly where it belongs—on your device.
+**KASH** is a premium, minimalist personal finance tracker built for those who value clarity, privacy, and impeccable design. Inspired by the **Obsidian Curator** aesthetic, KASH provides a "Private Vault" experience for your finances—keeping your data local, your interface dark, and your financial goals within reach.
 
-## Why Kash
+---
 
-- **Clean Dashboard**: A beautiful, unified view of your total balance, income, and expenses at a glance.
-- **Smart Insights**: Interactive category-based charts with monthly filtering to spot spending trends instantly.
-- **Goal Oriented**: Set savings goals for your dreams (like a new laptop or vacation) and track your progress in real-time.
-- **Effortless Activity**: Log transactions in seconds. Use the built-in filters to see exactly where your money goes.
-- **Privacy First**: Completely offline-first. No cloud, no tracking, no internet required. Your data is stored locally using Hive.
-- **Modern UI**: Smooth animations, intuitive gestures (like hold-to-delete), and a calming design language.
+## Key Features
+
+### 💎 Premium Design & UX
+- **Obsidian Curator Theme**: A sophisticated dark mode interface with deep navy surfaces, indigo accents, and 1px architectural "hairline" borders.
+- **Smooth Animations**: High-end transitions, including a sliding-scale FAB animation for adding transactions and fluid page-swipe navigation.
+- **Privacy First**: 100% offline. No cloud syncing, no trackers, and no internet required. Your financial data stays encrypted on your device via **Hive**.
+
+### 📊 Intelligent Tracking
+- **Multi-Account Support**: Manage multiple bank accounts with custom logos and unique color coding.
+- **Repetitive Expenses (Templates)**: Save frequent transactions (like "Morning Coffee") as templates for instant, one-tap entry from your home dashboard.
+- **Smart Activity Feed**: Redesigned transaction tiles featuring category-specific iconography and subtle account context.
+- **Interactive Insights**: Visualize your spending habits with dynamic category charts and monthly trend analysis.
+
+### 🎯 Goal Oriented
+- **Savings Goals**: Set visual targets for your big dreams—whether it's a new laptop or a summer vacation—and watch your progress grow in real-time.
+- **Customizable Categories**: Fully personalize your expense and income categories through the profile settings to match your specific lifestyle.
+
+### 👤 Personalized Profile
+- **Adaptive Branding**: Tap to edit your name and set a custom profile picture with built-in square cropping for a perfect fit.
+- **Theme Toggle**: Switch between light and dark modes instantly with a dedicated toggle in your settings.
 
 ---
 
 ## Tech Stack
 
-Built with high-performance, modern Android development practices:
-- **Flutter**: For a smooth, native-feeling cross-platform experience.
-- **Provider**: Clean state management for a responsive UI.
-- **Hive**: Lightning-fast, local NoSQL database for offline persistence.
-- **fl_chart**: Dynamic, responsive data visualizations.
-- **Clean Architecture**: Decoupled UI, providers, and services for easy maintainability.
+KASH is engineered using modern Flutter development standards:
+- **Framework**: [Flutter](https://flutter.dev/) (3.x)
+- **State Management**: [Provider](https://pub.dev/packages/provider)
+- **Local Database**: [Hive](https://pub.dev/packages/hive) (NoSQL)
+- **Data Visualization**: [fl_chart](https://pub.dev/packages/fl_chart)
+- **Asset Handling**: [flutter_svg](https://pub.dev/packages/flutter_svg) & [Lottie](https://pub.dev/packages/lottie)
+- **Image Processing**: [image_cropper](https://pub.dev/packages/image_cropper) & [image_picker](https://pub.dev/packages/image_picker)
 
 ---
 
-## Want to try it on your own?
-(P.S. You can just download the APK from the releases tab)
+## Getting Started
 
-Want to go deep and get more control?
+### Prerequisites
+- Flutter SDK (>= 3.8.1)
+- Dart SDK (>= 3.8.1)
+
+### Installation
 1. **Clone the repository**
    ```bash
    git clone https://github.com/whybhav360/kash.git
@@ -38,43 +56,34 @@ Want to go deep and get more control?
    flutter pub get
    ```
 
-3. **Run the app**
+3. **Generate Hive Adapters**
+   ```bash
+   dart run build_runner build --delete-conflicting-outputs
+   ```
+
+4. **Launch the application**
    ```bash
    flutter run
    ```
 
 ---
 
-## Project Structure
-
-- `lib/models/`: Data structures (Transaction, Goal, etc.).
-- `lib/providers/`: Business logic and state management.
-- `lib/screens/`: Feature-specific UI (Home, Activity, Insights, Goals).
-- `lib/services/`: Database (Hive) initialization.
-- `lib/widgets/`: Reusable UI components (Transaction tiles, Goal cards, etc.).
-
----
-
 ## Screenshots
 
-<img width="180" height="440" alt="Screenshot_20260406_014421" src="https://github.com/user-attachments/assets/7064f510-77e0-4540-bacd-7cba951829cf" />
-<img width="180" height="440" alt="Screenshot_20260406_014416" src="https://github.com/user-attachments/assets/5792be2a-2c84-46eb-a2e5-06d91eba64be" />
-<img width="180" height="440" alt="Screenshot_20260406_014421" src="https://github.com/user-attachments/assets/56a6ad40-2dbe-407c-aecc-d1c92e6e66c1" />
-<img width="180" height="440" alt="Screenshot_20260406_014425" src="https://github.com/user-attachments/assets/7e363425-aeee-4fdd-895e-875feafd9805" />
-
-
-
-
-
-## Let's Connect!
-
-Found a bug or have a feature request? Feel free to open an issue or submit a pull request.
+| Dashboard | Dark Mode | Insights | Goals |
+| :---: | :---: | :---: | :---: |
+| <img src="https://github.com/user-attachments/assets/7064f510-77e0-4540-bacd-7cba951829cf" width="200" /> | <img src="https://github.com/user-attachments/assets/5792be2a-2c84-46eb-a2e5-06d91eba64be" width="200" /> | <img src="https://github.com/user-attachments/assets/56a6ad40-2dbe-407c-aecc-d1c92e6e66c1" width="200" /> | <img src="https://github.com/user-attachments/assets/7e363425-aeee-4fdd-895e-875feafd9805" width="200" /> |
 
 ---
-Made By -> Vaibhav Madaan
 
-LinkedIn: https://www.linkedin.com/in/vaibhav360/
+## Contribution & Contact
 
-GitHub: https://github.com/whybhav360
+KASH is an open-source project. If you've found a bug or have a feature request, please feel free to open an issue or submit a pull request.
 
-and a lot of boilerplate by Gemini
+**Developed by Vaibhav Madaan**
+
+- **LinkedIn**: [vaibhav360](https://www.linkedin.com/in/vaibhav360/)
+- **GitHub**: [@whybhav360](https://github.com/whybhav360)
+
+---
+*Crafted with precision and a little help from Gemini.*

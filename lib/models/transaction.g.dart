@@ -17,20 +17,21 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return Transaction(
-      id: fields[0] as String,
-      amount: fields[1] as double,
-      type: fields[2] as TransactionType,
-      category: fields[3] as String,
-      date: fields[4] as DateTime,
-      note: fields[5] as String,
-      accountId: fields[6] as String?,
+      id: fields[0] as String? ?? '',
+      amount: (fields[1] as num?)?.toDouble() ?? 0.0,
+      type: fields[2] as TransactionType? ?? TransactionType.expense,
+      category: fields[3] as String? ?? 'Other',
+      date: fields[4] as DateTime? ?? DateTime.now(),
+      note: fields[5] as String? ?? '',
+      accountId: fields[6] as String? ?? 'default',
+      toAccountId: fields[7] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Transaction obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -44,7 +45,9 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
       ..writeByte(5)
       ..write(obj.note)
       ..writeByte(6)
-      ..write(obj.accountId);
+      ..write(obj.accountId)
+      ..writeByte(7)
+      ..write(obj.toAccountId);
   }
 
   @override
@@ -69,6 +72,8 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
         return TransactionType.income;
       case 1:
         return TransactionType.expense;
+      case 2:
+        return TransactionType.transfer;
       default:
         return TransactionType.income;
     }
@@ -82,6 +87,9 @@ class TransactionTypeAdapter extends TypeAdapter<TransactionType> {
         break;
       case TransactionType.expense:
         writer.writeByte(1);
+        break;
+      case TransactionType.transfer:
+        writer.writeByte(2);
         break;
     }
   }

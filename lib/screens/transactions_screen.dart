@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:lottie/lottie.dart';
 import '../providers/finance_provider.dart';
 import '../widgets/transaction_tile.dart';
 import '../models/transaction.dart';
-import '../models/account.dart';
-import 'add_transaction_screen.dart';
+import 'transfer_screen.dart';
+import '../widgets/add_transaction_fab.dart';
 
 class TransactionsScreen extends StatelessWidget {
   const TransactionsScreen({super.key});
@@ -16,92 +16,161 @@ class TransactionsScreen extends StatelessWidget {
     final transactions = financeProvider.filteredTransactions;
     final accounts = financeProvider.accounts;
 
+    final typeFilters = [
+      (label: 'All', type: null),
+      (label: 'Income', type: TransactionType.income),
+      (label: 'Expenses', type: TransactionType.expense),
+      (label: 'Transfers', type: TransactionType.transfer),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Activity'),
         centerTitle: false,
         actions: [
-          IconButton(
-            onPressed: () => _showFilterDialog(context, financeProvider),
-            icon: const Icon(Icons.filter_list_rounded),
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              IconButton(
+                onPressed: () => _showFilterDialog(context, financeProvider),
+                icon: const Icon(Icons.filter_list_rounded),
+                tooltip: 'Filter by Category',
+              ),
+              if (financeProvider.filterCategory != null)
+                Positioned(
+                  right: 12,
+                  top: 12,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF6366F1),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Account Filter Chips
+          // Transaction Type Filter Chips (All | Income | Expenses | Transfers)
           SizedBox(
             height: 50,
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               scrollDirection: Axis.horizontal,
-              itemCount: accounts.length + 1,
+              itemCount: typeFilters.length,
               separatorBuilder: (_, __) => const SizedBox(width: 10),
               itemBuilder: (context, index) {
-                final isAll = index == 0;
-                final accountId = isAll ? null : accounts[index - 1].id;
-                final isSelected = financeProvider.filterAccountId == accountId;
+                final item = typeFilters[index];
+                final isSelected = financeProvider.filterType == item.type;
 
                 return ChoiceChip(
-                  label: Text(isAll ? 'All Accounts' : accounts[index - 1].name),
+                  label: Text(item.label),
                   selected: isSelected,
-                  onSelected: (_) => financeProvider.setFilterAccount(accountId),
+                  onSelected: (_) => financeProvider.setFilterType(item.type),
                   selectedColor: Theme.of(context).colorScheme.primary,
                   labelStyle: TextStyle(
-                    color: isSelected ? Theme.of(context).colorScheme.onPrimary : Theme.of(context).textTheme.bodyMedium?.color,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context).textTheme.bodyMedium?.color,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                   backgroundColor: Theme.of(context).colorScheme.surface,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide.none),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    side: BorderSide.none,
+                  ),
                   showCheckmark: false,
                 );
               },
             ),
           ),
-          const SizedBox(height: 10),
+
+          // Active Category Filter Indicator (if any)
+          if (financeProvider.filterCategory != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 20, right: 20, bottom: 8),
+              child: Row(
+                children: [
+                  InputChip(
+                    label: Text('Category: ${financeProvider.filterCategory}'),
+                    selected: true,
+                    onDeleted: () => financeProvider.setFilterCategory(null),
+                    deleteIcon: const Icon(Icons.close_rounded, size: 16),
+                    selectedColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.12),
+                    labelStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 6),
 
           Expanded(
             child: transactions.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/animations/no_history.svg',
-                          width: 200,
-                          height: 200,
-                          fit: BoxFit.contain,
+                ? LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Lottie.asset(
+                                  'assets/animations/sad_no_result.json',
+                                  width: 200,
+                                  height: 200,
+                                  fit: BoxFit.contain,
+                                  repeat: true,
+                                  animate: true,
+                                ),
+                                const SizedBox(height: 16),
+                                const Text('No transactions found', style: TextStyle(color: Color(0xFF94A3B8))),
+                              ],
+                            ),
+                          ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No transactions found',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).dividerColor.withOpacity(0.5),
-                              ),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     itemCount: transactions.length,
                     itemBuilder: (context, index) {
                       final tx = transactions[index];
-                      final account = accounts.firstWhere(
-                        (a) => a.id == tx.accountId,
-                        orElse: () => accounts.isNotEmpty
-                            ? accounts.first
-                            : Account(id: 'temp', name: 'Loading...', openingBalance: 0, colorHex: 0xFF94A3B8),
-                      );
+                      final account = accounts.where((a) => a.id == tx.accountId).firstOrNull;
+
+                      final toAccount = tx.toAccountId != null
+                          ? accounts.where((a) => a.id == tx.toAccountId).firstOrNull
+                          : null;
 
                       return TransactionTile(
                         transaction: tx,
                         account: account,
+                        toAccount: toAccount,
+                        contextAccountId: financeProvider.filterAccountId,
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => AddTransactionScreen(transaction: tx),
-                          ),
+                          tx.type == TransactionType.transfer
+                              ? MaterialPageRoute(
+                                  builder: (context) => TransferScreen(transaction: tx),
+                                )
+                              : AddTransactionFab.route(transaction: tx),
                         ),
                         onDelete: () => financeProvider.deleteTransaction(tx),
                       );
@@ -110,97 +179,95 @@ class TransactionsScreen extends StatelessWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'transactions_fab',
-        onPressed: () {
-          Navigator.of(context).push(
-            PageRouteBuilder(
-              pageBuilder: (context, animation, secondaryAnimation) => const AddTransactionScreen(),
-              transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                const begin = Offset(0.0, 1.0);
-                const end = Offset.zero;
-                const curve = Curves.easeInOutQuart;
-                var slideTween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                var scaleTween = Tween<double>(begin: 0.0, end: 1.0).chain(CurveTween(curve: curve));
-
-                return SlideTransition(
-                  position: animation.drive(slideTween),
-                  child: ScaleTransition(
-                    scale: animation.drive(scaleTween),
-                    child: FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    ),
-                  ),
-                );
-              },
-              transitionDuration: const Duration(milliseconds: 500),
-            ),
-          );
-        },
-        backgroundColor: const Color(0xFF4F46E5),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Icon(Icons.add, color: Colors.white, size: 30),
+      floatingActionButton: const AddTransactionFab(
+        heroTag: 'activity_add_fab',
       ),
     );
   }
 
   void _showFilterDialog(BuildContext context, FinanceProvider provider) {
+    final categories = provider.usedCategories;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (context) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Filter by Type', style: Theme.of(context).textTheme.titleLarge),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
+        builder: (context, setModalState) => SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _FilterChip(
-                    label: 'All',
-                    isSelected: provider.filterType == null,
-                    onTap: () {
-                      provider.setFilterType(null);
-                      setModalState(() {});
-                    },
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('Filter by Category', style: Theme.of(context).textTheme.titleLarge),
+                      if (provider.filterCategory != null)
+                        TextButton(
+                          onPressed: () {
+                            provider.setFilterCategory(null);
+                            setModalState(() {});
+                          },
+                          child: const Text('Reset'),
+                        ),
+                    ],
                   ),
-                  _FilterChip(
-                    label: 'Income',
-                    isSelected: provider.filterType == TransactionType.income,
-                    onTap: () {
-                      provider.setFilterType(TransactionType.income);
-                      setModalState(() {});
-                    },
+                  const SizedBox(height: 8),
+                  Text(
+                    'Showing categories with existing transactions',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: const Color(0xFF94A3B8)),
                   ),
-                  _FilterChip(
-                    label: 'Expense',
-                    isSelected: provider.filterType == TransactionType.expense,
-                    onTap: () {
-                      provider.setFilterType(TransactionType.expense);
-                      setModalState(() {});
-                    },
+                  const SizedBox(height: 16),
+                  if (categories.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16.0),
+                      child: Text('No categories with transactions yet.', style: TextStyle(color: Color(0xFF94A3B8))),
+                    )
+                  else
+                    Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      children: [
+                        _FilterChip(
+                          label: 'All Categories',
+                          isSelected: provider.filterCategory == null,
+                          onTap: () {
+                            provider.setFilterCategory(null);
+                            setModalState(() {});
+                          },
+                        ),
+                        ...categories.map(
+                          (cat) => _FilterChip(
+                            label: cat,
+                            isSelected: provider.filterCategory == cat,
+                            onTap: () {
+                              provider.setFilterCategory(
+                                provider.filterCategory == cat ? null : cat,
+                              );
+                              setModalState(() {});
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: const Text('Apply Filters'),
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text('Apply Filters'),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -220,9 +287,9 @@ class _FilterChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceVariant,
+          color: isSelected ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:lottie/lottie.dart';
 import '../providers/finance_provider.dart';
 import '../widgets/goal_card.dart';
 import '../models/goal.dart';
@@ -45,13 +46,14 @@ class GoalsScreen extends StatelessWidget {
             context: context,
             barrierDismissible: true,
             barrierLabel: 'Goal Dialog',
-            transitionDuration: const Duration(milliseconds: 400),
+            transitionDuration: const Duration(milliseconds: 200),
             pageBuilder: (context, animation, secondaryAnimation) => const SizedBox.shrink(),
             transitionBuilder: (context, animation, secondaryAnimation, child) {
+              final curvedAnim = CurvedAnimation(parent: animation, curve: Curves.easeOutQuad);
               return ScaleTransition(
-                scale: animation,
+                scale: Tween<double>(begin: 0.95, end: 1.0).animate(curvedAnim),
                 child: FadeTransition(
-                  opacity: animation,
+                  opacity: curvedAnim,
                   child: _GoalDialog(provider: financeProvider),
                 ),
               );
@@ -73,14 +75,13 @@ class GoalsScreen extends StatelessWidget {
         Center(
           child: Column(
             children: [
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.1)),
-                ),
-                child: Icon(Icons.track_changes_rounded, size: 64, color: Theme.of(context).colorScheme.primary),
+              Lottie.asset(
+                'assets/animations/laughing_cat.json',
+                width: 150,
+                height: 150,
+                fit: BoxFit.contain,
+                repeat: true,
+                animate: true,
               ),
               const SizedBox(height: 24),
               Text(
@@ -100,13 +101,14 @@ class GoalsScreen extends StatelessWidget {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Goal Dialog',
-      transitionDuration: const Duration(milliseconds: 400),
+      transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (context, animation, secondaryAnimation) => const SizedBox.shrink(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
+        final curvedAnim = CurvedAnimation(parent: animation, curve: Curves.easeOutQuad);
         return ScaleTransition(
-          scale: animation,
+          scale: Tween<double>(begin: 0.95, end: 1.0).animate(curvedAnim),
           child: FadeTransition(
-            opacity: animation,
+            opacity: curvedAnim,
             child: _GoalDialog(provider: provider, goal: goal),
           ),
         );
@@ -148,79 +150,85 @@ class _GoalDialogState extends State<_GoalDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.goal == null ? 'Add New Goal' : 'Edit Goal'),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      content: Form(
-        key: formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: titleController,
-              decoration: InputDecoration(
-                labelText: 'Goal Title',
-                hintText: 'e.g., New Laptop',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      behavior: HitTestBehavior.translucent,
+      child: AlertDialog(
+        title: Text(widget.goal == null ? 'Add New Goal' : 'Edit Goal'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: titleController,
+                autofocus: true,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  labelText: 'Goal Title',
+                  hintText: 'e.g., New Laptop',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                validator: (value) =>
+                    (value == null || value.isEmpty) ? 'Enter title' : null,
               ),
-              validator: (value) =>
-                  (value == null || value.isEmpty) ? 'Enter title' : null,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              controller: amountController,
-              decoration: InputDecoration(
-                labelText: 'Target Amount',
-                prefixText: '₹ ',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: amountController,
+                decoration: InputDecoration(
+                  labelText: 'Target Amount',
+                  prefixText: '₹ ',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Enter amount';
+                  final amount = double.tryParse(value);
+                  if (amount == null) return 'Enter valid number';
+                  if (amount <= 0) return 'Amount must be positive';
+                  return null;
+                },
               ),
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              validator: (value) {
-                if (value == null || value.isEmpty) return 'Enter amount';
-                final amount = double.tryParse(value);
-                if (amount == null) return 'Enter valid number';
-                if (amount <= 0) return 'Amount must be positive';
-                return null;
-              },
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel')),
-        Padding(
-          padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
-          child: ElevatedButton(
-            onPressed: () {
-              if (formKey.currentState!.validate()) {
-                final amount = double.parse(amountController.text);
-                if (widget.goal == null) {
-                  widget.provider.addGoal(Goal(
-                    id: const Uuid().v4(),
-                    title: titleController.text,
-                    targetAmount: amount,
-                  ));
-                } else {
-                  widget.goal!.title = titleController.text;
-                  widget.goal!.targetAmount = amount;
-                  widget.goal!.save();
-                  widget.provider.refreshData();
-                }
-                Navigator.pop(context);
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF4F46E5),
-              foregroundColor: Colors.white,
-              shape:
-                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: Text(widget.goal == null ? 'Add Goal' : 'Update Goal'),
+            ],
           ),
         ),
-      ],
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0, bottom: 8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  final amount = double.parse(amountController.text);
+                  if (widget.goal == null) {
+                    widget.provider.addGoal(Goal(
+                      id: const Uuid().v4(),
+                      title: titleController.text,
+                      targetAmount: amount,
+                    ));
+                  } else {
+                    widget.goal!.title = titleController.text;
+                    widget.goal!.targetAmount = amount;
+                    widget.goal!.save();
+                    widget.provider.refreshData();
+                  }
+                  Navigator.pop(context);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4F46E5),
+                foregroundColor: Colors.white,
+                shape:
+                    RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(widget.goal == null ? 'Add Goal' : 'Update Goal'),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

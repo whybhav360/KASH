@@ -17,13 +17,13 @@ class TransactionTemplateAdapter extends TypeAdapter<TransactionTemplate> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return TransactionTemplate(
-      id: fields[0] as String,
-      name: fields[1] as String,
-      amount: fields[2] as double,
-      type: fields[3] as TransactionType,
-      category: fields[4] as String,
+      id: fields[0] as String? ?? '',
+      name: fields[1] as String? ?? '',
+      amount: (fields[2] as num?)?.toDouble() ?? 0.0,
+      type: fields[3] as TransactionType? ?? TransactionType.expense,
+      category: fields[4] as String? ?? 'Other',
       accountId: fields[5] as String?,
-      note: fields[6] as String,
+      note: fields[6] as String? ?? '',
     );
   }
 
