@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/goal.dart';
+import '../utils/currency_formatter.dart';
 
 class GoalCard extends StatelessWidget {
   final Goal goal;
@@ -91,14 +92,14 @@ class GoalCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Saved', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                  Text('₹${currentSavings.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(CurrencyFormatter.format(currentSavings), style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text('Target', style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
-                  Text('₹${goal.targetAmount.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(CurrencyFormatter.format(goal.targetAmount), style: const TextStyle(fontWeight: FontWeight.bold)),
                 ],
               ),
             ],

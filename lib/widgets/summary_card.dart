@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/currency_formatter.dart';
 
 class SummaryCard extends StatelessWidget {
   final String title;
@@ -47,7 +48,7 @@ class SummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '₹${amount.toStringAsFixed(2)}',
+            CurrencyFormatter.format(amount),
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,

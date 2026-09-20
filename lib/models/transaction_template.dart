@@ -35,4 +35,28 @@ class TransactionTemplate extends HiveObject {
     this.accountId,
     this.note = '',
   });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'amount': amount,
+    'type': type.name,
+    'category': category,
+    'accountId': accountId,
+    'note': note,
+  };
+
+  factory TransactionTemplate.fromJson(Map<String, dynamic> json) => TransactionTemplate(
+    id: json['id'] as String,
+    name: json['name'] as String,
+    amount: (json['amount'] as num).toDouble(),
+    type: (json['type'] as String) == 'income'
+        ? TransactionType.income
+        : (json['type'] as String) == 'transfer'
+            ? TransactionType.transfer
+            : TransactionType.expense,
+    category: json['category'] as String,
+    accountId: json['accountId'] as String?,
+    note: (json['note'] as String?) ?? '',
+  );
 }

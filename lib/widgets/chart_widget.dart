@@ -59,6 +59,8 @@ class CategoryChart extends StatelessWidget {
 
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
+      case 'paid':
+        return Icons.person_rounded;
       case 'salary':
         return Icons.account_balance_wallet_rounded;
       case 'food':

@@ -1,33 +1,55 @@
-# Kash - Smart Money Tracking
+# KASH — Personal Finance & Wealth Vault
 
-**Kash** is a modern, minimalist personal finance tracker built to help you master your money with zero stress. Designed for clarity and privacy, Kash keeps your financial data exactly where it belongs—on your device.
+**KASH** is a premium, minimalist personal finance tracker built for those who value clarity, privacy, and impeccable design. Inspired by the **Obsidian Curator** aesthetic, KASH provides a "Private Vault" experience for your finances—keeping your data local, your interface dark, and your financial goals within reach.
 
-## Why Kash
+---
 
-- **Clean Dashboard**: A beautiful, unified view of your total balance, income, and expenses at a glance.
-- **Smart Insights**: Interactive category-based charts with monthly filtering to spot spending trends instantly.
-- **Goal Oriented**: Set savings goals for your dreams (like a new laptop or vacation) and track your progress in real-time.
-- **Effortless Activity**: Log transactions in seconds. Use the built-in filters to see exactly where your money goes.
-- **Privacy First**: Completely offline-first. No cloud, no tracking, no internet required. Your data is stored locally using Hive.
-- **Modern UI**: Smooth animations, intuitive gestures (like hold-to-delete), and a calming design language.
+## 🚀 What's New & Key Features
+
+### 🏦 Automated Bank Statement Parser & PDF Import
+- **Instant Statement Ingestion**: Upload PDF bank statements from major banks (Axis, HDFC, SBI, ICICI, PNB, Kotak, etc.).
+- **Smart Parsing**: Automatically extracts transaction details, dates, amounts, bank names, and account numbers.
+- **Interactive Review**: Review, categorize, and verify parsed transactions in an intuitive staging screen before committing them to your vault.
+
+### 🔄 Account-to-Account Transfers
+- **Seamless Fund Transfers**: Move money between your various bank accounts with dedicated transfer tracking and balance updates.
+
+### 💾 Backup & Restore (JSON Vault)
+- **Local Data Portability**: Export your complete financial database to a secure JSON backup file and restore anytime.
+- **100% Privacy**: No cloud required. Your financial backups remain entirely under your control on your device.
+
+### 📄 Professional PDF Reports
+- **Financial Statements**: Generate detailed PDF financial summaries and reports powered by Syncfusion PDF.
+
+### 💎 Premium Design & UX (Obsidian Curator Theme)
+- **Sophisticated Aesthetics**: Deep navy surfaces, vibrant emerald/indigo accents, and 1px architectural hairline borders.
+- **Fluid Interactions**: Smooth sliding-scale FAB animations, category-specific iconography, and dynamic trend charts (`fl_chart`).
+- **Privacy First**: Completely offline and secure local storage via **Hive**.
+
+### 🎯 Savings Goals & Insights
+- **Goal Tracking**: Set visual savings targets for major life goals and monitor progress in real time.
+- **Analytics Dashboard**: Visualize your income vs. expense trends with interactive charts.
 
 ---
 
 ## Tech Stack
 
-Built with high-performance, modern Android development practices:
-- **Flutter**: For a smooth, native-feeling cross-platform experience.
-- **Provider**: Clean state management for a responsive UI.
-- **Hive**: Lightning-fast, local NoSQL database for offline persistence.
-- **fl_chart**: Dynamic, responsive data visualizations.
-- **Clean Architecture**: Decoupled UI, providers, and services for easy maintainability.
+- **Framework**: [Flutter](https://flutter.dev/) (3.x)
+- **State Management**: [Provider](https://pub.dev/packages/provider)
+- **Local Database**: [Hive](https://pub.dev/packages/hive) (NoSQL encrypted local vault)
+- **Data Visualization**: [fl_chart](https://pub.dev/packages/fl_chart)
+- **PDF Generation & Parsing**: [syncfusion_flutter_pdf](https://pub.dev/packages/syncfusion_flutter_pdf) & custom regex bank parsers
+- **Image Processing**: [image_cropper](https://pub.dev/packages/image_cropper) & [image_picker](https://pub.dev/packages/image_picker)
 
 ---
 
-## Want to try it on your own?
-(P.S. You can just download the APK from the releases tab)
+## Getting Started
 
-Want to go deep and get more control?
+### Prerequisites
+- Flutter SDK (>= 3.8.1)
+- Dart SDK (>= 3.10.0)
+
+### Installation & Building
 1. **Clone the repository**
    ```bash
    git clone https://github.com/whybhav360/kash.git
@@ -38,42 +60,29 @@ Want to go deep and get more control?
    flutter pub get
    ```
 
-3. **Run the app**
+3. **Generate Hive Adapters**
    ```bash
-   flutter run
+   dart run build_runner build --delete-conflicting-outputs
    ```
 
----
-
-## Project Structure
-
-- `lib/models/`: Data structures (Transaction, Goal, etc.).
-- `lib/providers/`: Business logic and state management.
-- `lib/screens/`: Feature-specific UI (Home, Activity, Insights, Goals).
-- `lib/services/`: Database (Hive) initialization.
-- `lib/widgets/`: Reusable UI components (Transaction tiles, Goal cards, etc.).
+4. **Build APK**
+   - **Debug APK**: `flutter build apk --debug`
+   - **Release APK**: `flutter build apk --release`
+   - Output path: `build/app/outputs/flutter-apk/app-release.apk`
 
 ---
 
 ## Screenshots
-<img width="180" height="440" alt="image" src="https://github.com/user-attachments/assets/89f6b678-852b-4552-b7e8-874c1c660beb" />
-<img width="180" height="440" alt="Screenshot_20260406_014416" src="https://github.com/user-attachments/assets/5792be2a-2c84-46eb-a2e5-06d91eba64be" />
-<img width="180" height="440" alt="Screenshot_20260406_014421" src="https://github.com/user-attachments/assets/56a6ad40-2dbe-407c-aecc-d1c92e6e66c1" />
-<img width="180" height="440" alt="Screenshot_20260406_014425" src="https://github.com/user-attachments/assets/7e363425-aeee-4fdd-895e-875feafd9805" />
 
-
-
-
-
-## Let's Connect!
-
-Found a bug or have a feature request? Feel free to open an issue or submit a pull request.
 
 ---
-Made By -> Vaibhav Madaan
 
-LinkedIn: https://www.linkedin.com/in/vaibhav360/
+## Author & Contribution
 
-GitHub: https://github.com/whybhav360
+**Developed by Vaibhav Madaan**
 
-and a lot of boilerplate by Gemini
+- **LinkedIn**: [vaibhav360](https://www.linkedin.com/in/vaibhav360/)
+- **GitHub**: [@whybhav360](https://github.com/whybhav360)
+
+---
+*Crafted with precision and a little help from Gemini.*

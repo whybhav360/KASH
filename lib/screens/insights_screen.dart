@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/finance_provider.dart';
 import '../widgets/chart_widget.dart';
+import '../utils/currency_formatter.dart';
 
 class InsightsScreen extends StatefulWidget {
   const InsightsScreen({super.key});
@@ -112,11 +113,13 @@ class _InsightsScreenState extends State<InsightsScreen> {
                                 });
                               },
                               items: (() {
-                                final List<DateTime> orderedMonths = List.from(availableMonths);
+                                final List<DateTime> orderedMonths = availableMonths.isEmpty ? [DateTime.now()] : List.from(availableMonths);
                                 final selectedIndex = orderedMonths.indexOf(_selectedMonth!);
                                 if (selectedIndex > 0) {
                                   final selected = orderedMonths.removeAt(selectedIndex);
                                   orderedMonths.insert(0, selected);
+                                } else if (selectedIndex == -1) {
+                                  _selectedMonth = orderedMonths.first;
                                 }
                                 return orderedMonths.map<DropdownMenuItem<DateTime>>((DateTime date) {
                                   return DropdownMenuItem<DateTime>(
@@ -142,7 +145,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               _buildInsightCard(
                 title: 'Highest Spending',
                 value: highestCategory,
-                subtitle: '₹${highestAmount.toStringAsFixed(0)}',
+                subtitle: CurrencyFormatter.format(highestAmount),
                 icon: Icons.pie_chart_rounded,
                 color: const Color(0xFFF59E0B),
               ),

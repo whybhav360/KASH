@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KASH - Personal Finance Simplified</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- WebGL Shader Component Script -->
+<script type="module">
+    class WebGLShaderElement extends HTMLElement {
+        constructor() {
+            super();
+            this.attachShadow({ mode: 'open' });
+            this.canvas = document.createElement('canvas');
+            this.canvas.style.width = '100%';
+            this.canvas.style.height = '100%';
+            this.canvas.style.display = 'block';
+            this.shadowRoot.appendChild(this.canvas);
+        }
+
+        async connectedCallback() {
+            const src = this.getAttribute('src');
+            if (!src) return;
+
+            let fragmentShaderSource;
+            if (src.startsWith('{{DATA:ANIMATION:')) {
+                // If it's a placeholder, we use a basic fallback or fetch it if we had a real data store
+                // For this example, we'll embed the provided GLSL directly as a fallback if the fetch fails
+                fragmentShaderSource = `
+precision highp float;
+
+varying vec2 v_texCoord;
+uniform float u_time;
+uniform vec2 u_resolution;
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    // Create a gentle flowing motion using sine waves and noise-like patterns
+    float noise = sin(uv.x * 3.0 + u_time * 0.5) * cos(uv.y * 2.0 - u_time * 0.3);
+    noise += sin(uv.y * 4.0 + u_time * 0.7) * 0.5;
+    
+    // Primary brand color: #4F46E5 (0.31, 0.27, 0.90)
+    vec3 colorA = vec3(0.31, 0.27, 0.90); 
+    // Soft off-white for the highlights
+    vec3 colorB = vec3(0.98, 0.98, 1.0);
+    
+    // Mix the colors based on the noise pattern for a subtle ambient effect
+    vec3 finalColor = mix(colorB, colorA, noise * 0.15 + 0.05);
+    
+    // Add a very subtle vignette for depth
+    float vignette = length(uv - 0.5);
+    finalColor *= 1.0 - vignette * 0.2;
+
+    gl_FragColor = vec4(finalColor, 1.0);
+}
+                `;
+            } else {
+                 try {
+                    const response = await fetch(src);
+                    fragmentShaderSource = await response.text();
+                } catch (e) {
+                    console.error("Failed to load shader:", e);
+                    return;
+                }
+            }
+
+
+            this.initWebGL(fragmentShaderSource);
+        }
+
+        initWebGL(fragmentSource) {
+            const gl = this.canvas.getContext('webgl');
+            if (!gl) return;
+
+            const vertexSource = `
+                attribute vec2 position;
+                varying vec2 v_texCoord;
+                void main() {
+                    gl_Position = vec4(position, 0.0, 1.0);
+                    v_texCoord = position * 0.5 + 0.5;
+                }
+            `;
+
+            const compileShader = (type, source) => {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error(gl.getShaderInfoLog(shader));
+                    gl.deleteShader(shader);
+                    return null;
+                }
+                return shader;
+            };
+
+            const vertexShader = compileShader(gl.VERTEX_SHADER, vertexSource);
+            const fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentSource);
+
+            const program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error(gl.getProgramInfoLog(program));
+                return;
+            }
+
+            gl.useProgram(program);
+
+            const positions = new Float32Array([
+                -1.0, -1.0,
+                 1.0, -1.0,
+                -1.0,  1.0,
+                -1.0,  1.0,
+                 1.0, -1.0,
+                 1.0,  1.0,
+            ]);
+
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+            const positionLocation = gl.getAttribLocation(program, 'position');
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            const timeLocation = gl.getUniformLocation(program, 'u_time');
+            const resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
+
+            const resizeCanvasToDisplaySize = (canvas) => {
+                const displayWidth  = canvas.clientWidth;
+                const displayHeight = canvas.clientHeight;
+                if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
+                    canvas.width  = displayWidth;
+                    canvas.height = displayHeight;
+                    return true;
+                }
+                return false;
+            };
+
+            let startTime = null;
+            let lastTime = null;
+            let shaderTime = 0;
+
+            const FAST_BURST_DURATION_MS = 1000; // 1 second initial burst
+            const FAST_SPEED = 6.0;             // Initial burst speed
+            const NORMAL_SPEED = 1.0;           // Speed after burst
+
+            const render = (time) => {
+                if (startTime === null) {
+                    startTime = time;
+                    lastTime = time;
+                }
+                const elapsed = time - startTime;
+                const delta = (time - lastTime) * 0.001;
+                lastTime = time;
+
+                const speed = elapsed < FAST_BURST_DURATION_MS ? FAST_SPEED : NORMAL_SPEED;
+                shaderTime += delta * speed;
+
+                resizeCanvasToDisplaySize(this.canvas);
+                gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+
+                gl.uniform1f(timeLocation, shaderTime);
+                gl.uniform2f(resolutionLocation, gl.canvas.width, gl.canvas.height);
+
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            };
+
+            requestAnimationFrame(render);
+        }
+    }
+    customElements.define('webgl-shader', WebGLShaderElement);
+</script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#6cf8bb",
+                        "error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#4edea3",
+                        "tertiary-fixed-dim": "#ffb3ad",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#bc1d25",
+                        "secondary": "#006c49",
+                        "primary-container": "#4f46e5",
+                        "surface": "#f8f9fa",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-surface-variant": "#464555",
+                        "outline-variant": "#c7c4d8",
+                        "on-secondary": "#ffffff",
+                        "surface-container-high": "#e7e8e9",
+                        "on-secondary-fixed-variant": "#005236",
+                        "surface-container": "#edeeef",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "surface-variant": "#e1e3e4",
+                        "on-primary": "#ffffff",
+                        "on-tertiary": "#ffffff",
+                        "secondary-fixed": "#6ffbbe",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-tertiary-fixed-variant": "#930013",
+                        "background": "#f8f9fa",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-bright": "#f8f9fa",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed": "#0f0069",
+                        "tertiary": "#960014",
+                        "on-secondary-fixed": "#002113",
+                        "primary": "#3525cd",
+                        "on-primary-fixed-variant": "#3323cc",
+                        "on-background": "#191c1d",
+                        "on-secondary-container": "#00714d",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed": "#410004",
+                        "primary-fixed": "#e2dfff",
+                        "outline": "#777587",
+                        "inverse-primary": "#c3c0ff",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary-container": "#ffd0cc",
+                        "surface-tint": "#4d44e3",
+                        "surface-dim": "#d9dadb",
+                        "surface-container-low": "#f3f4f5",
+                        "on-surface": "#191c1d",
+                        "on-primary-container": "#dad7ff",
+                        "inverse-on-surface": "#f0f1f2"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {},
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "display": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    "fontSize": {}
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .delay-100 { animation-delay: 100ms; }
+        .delay-300 { animation-delay: 300ms; }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="bg-background min-h-screen flex flex-col items-center justify-center font-body text-on-surface antialiased overflow-hidden selection:bg-primary-container selection:text-on-primary-container relative z-0">
+<!-- WebGL Background -->
+<!-- STITCH_SHADER_START:ANIMATION_45 class="absolute inset-0 w-full h-full -z-10" -->
+<div class="absolute inset-0 w-full h-full -z-10" style="display:block;">
+<canvas id="shader-canvas-ANIMATION_45" style="display:block;width:100%;height:100%"></canvas>
+<script>
+(function() {
+  const canvas = document.getElementById('shader-canvas-ANIMATION_45');
+
+  // Sync the WebGL drawing-buffer size with the CSS-driven layout size.
+  // This fires on initial layout and whenever the element is resized.
+  function syncSize() {
+    const w = canvas.clientWidth  || 1280;
+    const h = canvas.clientHeight || 720;
+    if (canvas.width !== w || canvas.height !== h) {
+      canvas.width  = w;
+      canvas.height = h;
+    }
+  }
+  if (typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(syncSize).observe(canvas);
+  }
+  syncSize();
+
+  const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+  if (!gl) return;
+  const vs = `attribute vec2 a_position;
+varying vec2 v_texCoord;
+void main() {
+  v_texCoord = a_position * 0.5 + 0.5;
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}`;
+  const fs = `precision highp float;
+
+varying vec2 v_texCoord;
+uniform float u_time;
+uniform vec2 u_resolution;
+
+void main() {
+    vec2 uv = v_texCoord;
+    
+    // Create a gentle flowing motion using sine waves and noise-like patterns
+    float noise = sin(uv.x * 3.0 + u_time * 0.5) * cos(uv.y * 2.0 - u_time * 0.3);
+    noise += sin(uv.y * 4.0 + u_time * 0.7) * 0.5;
+    
+    // Primary brand color: #4F46E5 (0.31, 0.27, 0.90)
+    vec3 colorA = vec3(0.31, 0.27, 0.90); 
+    // Soft off-white for the highlights
+    vec3 colorB = vec3(0.98, 0.98, 1.0);
+    
+    // Mix the colors based on the noise pattern for a subtle ambient effect
+    vec3 finalColor = mix(colorB, colorA, noise * 0.15 + 0.05);
+    
+    // Add a very subtle vignette for depth
+    float vignette = length(uv - 0.5);
+    finalColor *= 1.0 - vignette * 0.2;
+
+    gl_FragColor = vec4(finalColor, 1.0);
+}`;
+  function cs(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src);
+    gl.compileShader(s);
+    return s;
+  }
+  const prog = gl.createProgram();
+  gl.attachShader(prog, cs(gl.VERTEX_SHADER, vs));
+  gl.attachShader(prog, cs(gl.FRAGMENT_SHADER, fs));
+  gl.linkProgram(prog);
+  gl.useProgram(prog);
+  const buf = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+  const pos = gl.getAttribLocation(prog, 'a_position');
+  gl.enableVertexAttribArray(pos);
+  gl.vertexAttribPointer(pos, 2, gl.FLOAT, false, 0, 0);
+  const uTime = gl.getUniformLocation(prog, 'u_time');
+  const uRes = gl.getUniformLocation(prog, 'u_resolution');
+  const uMouse = gl.getUniformLocation(prog, 'u_mouse');
+
+  // u_mouse is in pixel coordinates matching u_resolution (ShaderToy convention).
+  // Shaders that need normalized coords should use: u_mouse / u_resolution.
+  let mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+  window.addEventListener('mousemove', (event) => {
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width && rect.height) {
+      const nx = (event.clientX - rect.left) / rect.width;
+      const ny = 1.0 - (event.clientY - rect.top) / rect.height;
+      mouse.x = nx * canvas.width;
+      mouse.y = ny * canvas.height;
+    }
+  });
+
+  function render(t) {
+    if (typeof ResizeObserver === 'undefined') syncSize();
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    if (uTime) gl.uniform1f(uTime, t * 0.001);
+    if (uRes) gl.uniform2f(uRes, canvas.width, canvas.height);
+    if (uMouse) gl.uniform2f(uMouse, mouse.x, mouse.y);
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    requestAnimationFrame(render);
+  }
+  render(0);
+})();
+</script>
+</div>
+<!-- STITCH_SHADER_END:ANIMATION_45 -->
+<!-- Main Content Area -->
+<main class="flex-grow flex flex-col items-center justify-center w-full px-6 relative z-10">
+<!-- Logo and Wordmark Container -->
+<div class="flex flex-col items-center justify-center space-y-6 fade-in-up">
+<!-- App Logo Image -->
+<div class="relative w-24 h-24 sm:w-32 sm:h-32 mb-2">
+<img alt="KASH Brand Logo" class="w-full h-full object-contain drop-shadow-md" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD7_SRhmCz1vTLGWiDT3RIS80UO7JlTRqTaa5ejH-WAiqDsknFAiqxbl697E1mHYOUpFf8NlYLmNaNFEx7lM_vGZqAxpz0uB8v-PxkyX2t0qODNnvwBywQg9QbdlMz8OU5LKQQrtczFnhAwxPS4xW5OBc1kUrxwwthQA1-pSCan35yy4Hz_Ja6ioKx0ASOftB3YtZI9nQAKjpftr8Y7yF0gROqmdna40kGTpqxbaRpamOn__eGwXDT2"/>
+</div>
+<!-- Wordmark -->
+<h1 class="font-display font-black text-5xl sm:text-6xl tracking-tight text-primary fade-in-up delay-100">
+                KASH
+            </h1>
+</div>
+<!-- Tagline -->
+<div class="absolute bottom-12 w-full text-center px-6 fade-in-up delay-300">
+<p class="font-label text-xs font-semibold tracking-widest uppercase text-on-surface-variant/70">
+                PERSONAL FINANCE SIMPLIFIED
+            </p>
+</div>
+</main>
+</body></html>

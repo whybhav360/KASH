@@ -6,7 +6,12 @@ class NavigationProvider with ChangeNotifier {
   int get selectedIndex => _selectedIndex;
 
   void setIndex(int index) {
-    _selectedIndex = index;
+    int clampedIndex = index;
+    if (clampedIndex < 0 || clampedIndex > 3) {
+      clampedIndex = 0;
+    }
+    if (_selectedIndex == clampedIndex) return;
+    _selectedIndex = clampedIndex;
     notifyListeners();
   }
 }
