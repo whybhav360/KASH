@@ -74,9 +74,6 @@
 
 ## Screenshots
 
-| Dashboard | Bank Statement Review | Insights & Goals | Profile & Backup |
-| :---: | :---: | :---: | :---: |
-| <img src="https://github.com/user-attachments/assets/7064f510-77e0-4540-bacd-7cba951829cf" width="200" /> | <img src="https://github.com/user-attachments/assets/5792be2a-2c84-46eb-a2e5-06d91eba64be" width="200" /> | <img src="https://github.com/user-attachments/assets/56a6ad40-2dbe-407c-aecc-d1c92e6e66c1" width="200" /> | <img src="https://github.com/user-attachments/assets/7e363425-aeee-4fdd-895e-875feafd9805" width="200" /> |
 
 ---
 
